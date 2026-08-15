@@ -1,0 +1,844 @@
+<title>Инвестиционный практикум</title>
+<style>
+  :root {
+    --ground: #EEF0F4;
+    --surface: #FFFFFF;
+    --surface-2: #F5F7FA;
+    --ink: #121820;
+    --muted: #59647A;
+    --rule: #D6DBE4;
+    --rule-strong: #B9C2CF;
+    --accent: #1B45C8;
+    --accent-ink: #1B45C8;
+    --accent-soft: #E4E9FB;
+    --on-accent: #FFFFFF;
+    --ok: #0E7052;
+    --ok-soft: #E0F0EA;
+    --bad: #B62D24;
+    --bad-soft: #FAE6E3;
+    --shadow: 0 1px 2px rgba(18, 24, 32, .06), 0 8px 24px -16px rgba(18, 24, 32, .28);
+
+    --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', system-ui, sans-serif;
+    --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+
+    --step: 1.5rem;
+    --radius: 3px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1117;
+      --surface: #151B24;
+      --surface-2: #1A212B;
+      --ink: #E7EBF2;
+      --muted: #93A0B4;
+      --rule: #2A323F;
+      --rule-strong: #3B4655;
+      --accent: #7FA0FF;
+      --accent-ink: #A9C0FF;
+      --accent-soft: #1B2740;
+      --on-accent: #0D1117;
+      --ok: #4CBF95;
+      --ok-soft: #13291F;
+      --bad: #F0796E;
+      --bad-soft: #331A19;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 28px -18px rgba(0, 0, 0, .8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0D1117;
+    --surface: #151B24;
+    --surface-2: #1A212B;
+    --ink: #E7EBF2;
+    --muted: #93A0B4;
+    --rule: #2A323F;
+    --rule-strong: #3B4655;
+    --accent: #7FA0FF;
+    --accent-ink: #A9C0FF;
+    --accent-soft: #1B2740;
+    --on-accent: #0D1117;
+    --ok: #4CBF95;
+    --ok-soft: #13291F;
+    --bad: #F0796E;
+    --bad-soft: #331A19;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 28px -18px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 0 1.25rem 5rem;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- intro ---------- */
+
+  .intro { padding: clamp(3rem, 9vw, 6rem) 0 3rem; }
+
+  .intro h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2rem, 5.6vw, 3.1rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: .9rem 0 0;
+  }
+
+  .intro .lede {
+    color: var(--muted);
+    max-width: 34rem;
+    margin: 1.1rem 0 0;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin: 2.5rem 0;
+  }
+
+  .fact { background: var(--surface); padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: .35rem; }
+  .fact b { font-family: var(--mono); font-size: 1.5rem; font-weight: 500; line-height: 1; letter-spacing: -.02em; }
+  .fact span { font-size: .82rem; color: var(--muted); }
+
+  .rules { display: flex; flex-direction: column; gap: .55rem; margin: 0 0 2.25rem; padding: 0; list-style: none; color: var(--muted); font-size: .93rem; }
+  .rules li { display: grid; grid-template-columns: 1.35rem 1fr; gap: .5rem; }
+  .rules li::before { content: "—"; color: var(--rule-strong); }
+
+  /* ---------- buttons ---------- */
+
+  .btn {
+    font: inherit;
+    font-weight: 550;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+    padding: .72rem 1.5rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: filter .15s ease, transform .15s ease;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); }
+  .btn.ghost:hover { border-color: var(--ink); filter: none; }
+  .btn[disabled] { opacity: .35; cursor: default; transform: none; filter: none; }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- progress rail ---------- */
+
+  .rail {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule);
+    padding: .8rem 0 .7rem;
+  }
+
+  .rail-inner { max-width: 46rem; margin: 0 auto; padding: 0 1.25rem; }
+
+  .rail-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: .55rem;
+  }
+
+  .rail-meta .right { font-family: var(--mono); font-size: .72rem; font-variant-numeric: tabular-nums; color: var(--muted); letter-spacing: .04em; }
+  .rail-meta .right b { color: var(--bad); font-weight: 600; }
+
+  .ticks { display: flex; gap: 2px; }
+  .tick { flex: 1; height: 4px; background: var(--rule); border-radius: 1px; transition: background .2s ease, height .2s ease; }
+  .tick.done-ok { background: var(--ok); }
+  .tick.done-bad { background: var(--bad); }
+  .tick.now { background: var(--accent); height: 8px; margin-top: -2px; }
+
+  /* ---------- question ---------- */
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+    padding: clamp(1.35rem, 3.5vw, 2.1rem);
+    margin-top: 2rem;
+  }
+
+  .card-head { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .qnum { font-family: var(--mono); font-size: .74rem; color: var(--accent-ink); letter-spacing: .1em; }
+  .tier { font-family: var(--mono); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); border-left: 1px solid var(--rule-strong); padding-left: .7rem; }
+
+  .qtext {
+    font-family: var(--serif);
+    font-size: clamp(1.15rem, 2.4vw, 1.42rem);
+    line-height: 1.4;
+    text-wrap: pretty;
+    margin: 0;
+  }
+
+  .given {
+    margin-top: 1.1rem;
+    background: var(--surface-2);
+    border-left: 2px solid var(--rule-strong);
+    padding: .9rem 1.1rem;
+    font-size: .9rem;
+  }
+  .given p { margin: 0 0 .5rem; }
+  .given p:last-child { margin-bottom: 0; }
+  .given ol { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: .3rem; }
+  .given .scroll { overflow-x: auto; }
+  .given table { border-collapse: collapse; font-size: .86rem; width: 100%; }
+  .given th, .given td { text-align: right; padding: .32rem .7rem; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  .given th:first-child, .given td:first-child { text-align: left; }
+  .given td:not(:first-child) { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .given thead th { color: var(--muted); font-weight: 500; font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; }
+
+  .options { display: flex; flex-direction: column; gap: .5rem; margin-top: 1.5rem; }
+
+  .opt {
+    display: grid;
+    grid-template-columns: 1.9rem 1fr 1.2rem;
+    align-items: start;
+    gap: .6rem;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: .78rem .9rem;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+  .opt:disabled { cursor: default; }
+  .opt .key { font-family: var(--mono); font-size: .8rem; color: var(--muted); padding-top: .12rem; }
+  .opt .mark { font-family: var(--mono); font-size: .95rem; text-align: right; opacity: 0; }
+
+  .opt.picked-ok { border-color: var(--ok); background: var(--ok-soft); }
+  .opt.picked-ok .mark, .opt.reveal .mark { opacity: 1; color: var(--ok); }
+  .opt.picked-ok .key, .opt.reveal .key { color: var(--ok); }
+  .opt.picked-bad { border-color: var(--bad); background: var(--bad-soft); }
+  .opt.picked-bad .mark { opacity: 1; color: var(--bad); }
+  .opt.picked-bad .key { color: var(--bad); }
+  .opt.reveal { border-color: var(--ok); }
+  .opt.dim { opacity: .55; }
+
+  /* ---------- feedback ---------- */
+
+  .feedback { margin-top: 1.4rem; border-top: 1px solid var(--rule); padding-top: 1.2rem; }
+  .verdict { font-family: var(--mono); font-size: .76rem; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .7rem; }
+  .verdict.ok { color: var(--ok); }
+  .verdict.bad { color: var(--bad); }
+  .explain { font-size: .95rem; }
+  .explain p { margin: 0 0 .7rem; }
+  .explain p:last-child { margin-bottom: 0; }
+  .explain ul { margin: 0 0 .7rem; padding-left: 1.15rem; display: flex; flex-direction: column; gap: .3rem; }
+  .explain b, .explain strong { font-weight: 600; }
+  .calc {
+    font-family: var(--mono);
+    font-size: .85rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    padding: .7rem .85rem;
+    margin: 0 0 .8rem;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.7;
+  }
+  .nav { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1.5rem; }
+  .hint { font-family: var(--mono); font-size: .7rem; color: var(--muted); text-align: right; margin-top: .8rem; letter-spacing: .04em; }
+
+  .anim { animation: rise .28s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .anim { animation: none; }
+    * { transition-duration: .01ms !important; }
+  }
+
+  /* ---------- results ---------- */
+
+  .result-head { padding: clamp(2.5rem, 7vw, 4rem) 0 1rem; }
+  .score-line { display: flex; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap; margin-top: .8rem; }
+  .score-big { font-family: var(--mono); font-size: clamp(3.2rem, 12vw, 5.5rem); line-height: .85; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .score-side { font-size: 1.05rem; color: var(--muted); padding-bottom: .35rem; }
+  .score-side b { color: var(--ink); font-weight: 600; }
+  .grade { font-family: var(--serif); font-size: 1.35rem; margin: 1.4rem 0 0; }
+
+  .bars { display: flex; flex-direction: column; gap: .9rem; margin: 2.25rem 0; }
+  .bar-row { display: grid; grid-template-columns: 1fr auto; gap: .4rem 1rem; align-items: baseline; }
+  .bar-row .label { font-size: .9rem; }
+  .bar-row .val { font-family: var(--mono); font-size: .85rem; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .bar-track { display: block; grid-column: 1 / -1; height: 6px; background: var(--rule); border-radius: 1px; overflow: hidden; }
+  .bar-fill { display: block; height: 100%; background: var(--ok); }
+
+  .review { border-top: 1px solid var(--rule); margin-top: 2.5rem; }
+  details.miss { border-bottom: 1px solid var(--rule); }
+  details.miss > summary {
+    cursor: pointer;
+    padding: .95rem 0;
+    display: grid;
+    grid-template-columns: 2.6rem 1fr 1.2rem;
+    gap: .7rem;
+    align-items: baseline;
+    list-style: none;
+  }
+  details.miss > summary::-webkit-details-marker { display: none; }
+  details.miss > summary .n { font-family: var(--mono); font-size: .76rem; color: var(--bad); }
+  details.miss > summary .t { font-size: .95rem; }
+  details.miss > summary .chev { text-align: right; color: var(--muted); font-family: var(--mono); font-size: .8rem; }
+  details.miss[open] > summary .chev { color: var(--accent-ink); }
+  .miss-body { padding: 0 0 1.3rem 3.3rem; font-size: .93rem; }
+  .miss-body .ans { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .9rem; }
+  .miss-body .ans span { display: block; }
+  .miss-body .ans .yours { color: var(--bad); }
+  .miss-body .ans .right { color: var(--ok); }
+  .miss-body .ans em { font-style: normal; font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-right: .5rem; }
+  @media (max-width: 32rem) { .miss-body { padding-left: 0; } }
+
+  .clean { padding: 1.5rem 0 0; color: var(--muted); }
+  footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .82rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .hidden { display: none !important; }
+</style>
+
+<div id="rail" class="rail hidden">
+  <div class="rail-inner">
+    <div class="rail-meta">
+      <span class="eyebrow" id="railTier">Базовый уровень</span>
+      <span class="right"><span id="railCount">01 / 20</span> · ошибок <b id="railErr">0</b></span>
+    </div>
+    <div class="ticks" id="ticks"></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ================= INTRO ================= -->
+  <section id="screenIntro">
+    <div class="intro">
+      <p class="eyebrow">Тест с автопроверкой · 20 вопросов</p>
+      <h1>Оценка эффективности инвестиционных проектов</h1>
+      <p class="lede">Выберите вариант ответа — проверка мгновенная, с полным разбором расчёта. В конце вы увидите число ошибок и сможете разобрать каждую.</p>
+
+      <div class="facts">
+        <div class="fact"><b>10</b><span>базовых вопросов<br>NPV, IRR, PI, PP, WACC</span></div>
+        <div class="fact"><b>5</b><span>расчётных задач<br>MIRR, EAA, WACC</span></div>
+        <div class="fact"><b>5</b><span>кейсов<br>анализ ситуаций</span></div>
+      </div>
+
+      <ul class="rules">
+        <li>Ответ засчитывается с первой попытки — изменить его нельзя.</li>
+        <li>После выбора открывается разбор: решение, формула, типичные ошибки.</li>
+        <li>Клавиши <span class="num">1</span>–<span class="num">4</span> — выбор варианта, <span class="num">Enter</span> — следующий вопрос.</li>
+      </ul>
+
+      <button class="btn" id="startBtn">Начать тест</button>
+    </div>
+  </section>
+
+  <!-- ================= QUIZ ================= -->
+  <section id="screenQuiz" class="hidden">
+    <div class="card" id="card"></div>
+  </section>
+
+  <!-- ================= RESULTS ================= -->
+  <section id="screenResult" class="hidden">
+    <div class="result-head">
+      <p class="eyebrow">Результат</p>
+      <div class="score-line">
+        <div class="score-big" id="errBig">0</div>
+        <div class="score-side" id="errWord">ошибок</div>
+      </div>
+      <p class="grade" id="grade"></p>
+    </div>
+
+    <div class="bars" id="bars"></div>
+
+    <div class="review" id="review"></div>
+
+    <div class="nav" style="justify-content:flex-start">
+      <button class="btn" id="againBtn">Пройти заново</button>
+    </div>
+
+    <footer>
+      <span>Оценка эффективности инвестиционных проектов · 20 вопросов</span>
+      <span class="num" id="footScore"></span>
+    </footer>
+  </section>
+
+</div>
+
+<script>
+const TIERS = { base: 'Базовый уровень', adv: 'Продвинутый уровень', case: 'Анализ кейсов' };
+
+const Q = [
+{ tier:'base', q:'Что показывает чистая приведённая стоимость (NPV) проекта?',
+  o:['Бухгалтерскую прибыль проекта за весь срок жизни',
+     'Прирост стоимости компании в сегодняшних деньгах сверх требуемой доходности',
+     'Сумму всех денежных притоков проекта',
+     'Рентабельность вложенного капитала в процентах'], c:1,
+  e:`<p class="calc">NPV = Σ CFₜ / (1 + r)ᵗ − IC</p>
+     <p>NPV — дисконтированный чистый эффект: сколько стоимости проект добавляет владельцам капитала <b>после</b> того, как окупил вложения и обеспечил доходность на уровне ставки дисконтирования.</p>
+     <p>Вариант о бухгалтерской прибыли неверен: расчёт строится на денежных потоках, а не на прибыли. Доходность в процентах — это уже IRR или ARR.</p>` },
+
+{ tier:'base', q:'По какому правилу принимается решение о независимом проекте на основе NPV?',
+  o:['Принять, если NPV > 0', 'Принять, если NPV > IC', 'Принять, если NPV > r',
+     'Принять, если NPV максимальна среди всех рассматриваемых проектов'], c:0,
+  e:`<p>NPV > 0 означает, что доходность проекта превышает стоимость привлечённого капитала. При NPV = 0 проект приемлем «на грани»: окупает капитал ровно по требуемой ставке, но стоимости не создаёт.</p>
+     <p>Выбор максимальной NPV — правило для <b>взаимоисключающих</b> проектов. Независимые проекты не конкурируют между собой: принимаются все с положительной NPV.</p>` },
+
+{ tier:'base', q:'Внутренняя норма доходности (IRR) — это:',
+  o:['Ставка, равная стоимости капитала компании',
+     'Ставка дисконтирования, при которой NPV проекта равна нулю',
+     'Отношение прибыли к инвестициям',
+     'Средняя доходность за период окупаемости'], c:1,
+  e:`<p class="calc">Σ CFₜ / (1 + IRR)ᵗ − IC = 0</p>
+     <p>Экономический смысл IRR — максимальная цена капитала, которую проект способен выдержать без убытка. Критерий принятия: IRR > WACC (барьерной ставки).</p>` },
+
+{ tier:'base', q:'Простой срок окупаемости (PP) — это период, за который:',
+  o:['Проект начинает приносить бухгалтерскую прибыль',
+     'Накопленный денежный поток покрывает первоначальные инвестиции',
+     'NPV достигает максимума',
+     'Возвращается вся стоимость капитала с процентами'], c:1,
+  e:`<p>PP — момент, когда кумулятивный денежный поток меняет знак с минуса на плюс.</p>
+     <p>Два принципиальных недостатка: метод игнорирует стоимость денег во времени и полностью игнорирует потоки <b>после</b> точки окупаемости. Поэтому его применяют как дополнительный критерий ликвидности и риска, а не как основной.</p>` },
+
+{ tier:'base', q:'Как соотносятся простой (PP) и дисконтированный (DPP) сроки окупаемости при положительной ставке дисконтирования?',
+  o:['DPP < PP', 'DPP = PP', 'DPP > PP', 'Соотношение зависит от знака NPV'], c:2,
+  e:`<p>Дисконтирование уменьшает каждый будущий приток, поэтому накопленная сумма растёт медленнее и порог инвестиций достигается позже.</p>
+     <p>При r > 0 неравенство DPP > PP выполняется всегда. Более того, DPP может вообще не достигаться в пределах горизонта проекта — это ровно тот случай, когда NPV отрицательна.</p>` },
+
+{ tier:'base', q:'Индекс рентабельности PI = PV(притоков) / IC. При каком значении проект принимается?',
+  o:['PI > 0', 'PI > 1', 'PI > r', 'PI > IRR'], c:1,
+  e:`<p>PI > 1 эквивалентно NPV > 0, поскольку NPV = PV − IC.</p>
+     <p>Отличие PI в том, что он измеряет отдачу <b>на рубль вложений</b>. Именно поэтому его используют для ранжирования проектов в условиях ограниченного бюджета, где важен не абсолютный эффект, а эффективность использования дефицитного капитала.</p>` },
+
+{ tier:'base', q:'Что используется в качестве ставки дисконтирования для проекта, сопоставимого по риску с текущей деятельностью компании?',
+  o:['Ставка рефинансирования Банка России', 'Ожидаемая рентабельность продаж',
+     'WACC — средневзвешенная стоимость капитала компании', 'Ставка по банковскому депозиту'], c:2,
+  e:`<p>WACC отражает альтернативную стоимость капитала для всех инвесторов компании — и акционеров, и кредиторов.</p>
+     <p>Важная оговорка: WACC корректна только при сопоставимом риске. Для проекта с иным риском ставку корректируют — например, через бету компаний-аналогов из соответствующей отрасли.</p>` },
+
+{ tier:'base', q:'Как амортизация учитывается при построении денежного потока проекта?',
+  o:['Вычитается из потока как обычный расход',
+     'Не влияет на расчёт вообще',
+     'Не является оттоком денег, но создаёт налоговый щит: её вычитают при расчёте налога и прибавляют обратно',
+     'Прибавляется к сумме первоначальных инвестиций'], c:2,
+  e:`<p>Амортизация — неденежный расход. Отсюда стандартная схема:</p>
+     <p class="calc">CF = (Выручка − Затраты − А) × (1 − T) + А
+CF = (Выручка − Затраты) × (1 − T) + А × T</p>
+     <p>Последнее слагаемое, А × T, и есть <b>амортизационный налоговый щит</b> — реальная экономия на налоге, которую даёт начисление амортизации.</p>` },
+
+{ tier:'base', q:'Компания уже потратила 3 млн руб. на маркетинговое исследование. Как эти затраты учитываются при оценке проекта?',
+  o:['Включаются в первоначальные инвестиции',
+     'Не включаются — это невозвратные (sunk) затраты',
+     'Включаются частично, пропорционально сроку проекта',
+     'Вычитаются из полученной NPV в конце расчёта'], c:1,
+  e:`<p>Релевантны только те потоки, которые <b>изменятся</b> в зависимости от решения. Деньги уже потрачены и не вернутся ни при принятии проекта, ни при отказе от него, поэтому на решение влиять не должны.</p>
+     <p>Их включение — классическая ошибка «эффекта утопленных затрат»: желание «отбить» понесённые расходы заставляет принимать заведомо убыточные проекты.</p>` },
+
+{ tier:'base', q:'Как корректно учесть инфляцию в расчёте NPV?',
+  o:['Номинальные потоки дисконтировать по номинальной ставке',
+     'Номинальные потоки дисконтировать по реальной ставке',
+     'Реальные потоки дисконтировать по номинальной ставке',
+     'Инфляцию учитывать не нужно — в числителе и знаменателе она сокращается'], c:0,
+  e:`<p>Требуется согласованность: либо номинальные потоки (с учётом роста цен) и номинальная ставка, либо реальные потоки и реальная ставка. Связь даёт формула Фишера:</p>
+     <p class="calc">(1 + r_ном) = (1 + r_реал) × (1 + i)</p>
+     <p>Номинальные потоки под реальную ставку — типичная ошибка, систематически <b>завышающая</b> NPV: рост цен попадает в числитель, но не в знаменатель.</p>` },
+
+/* ---------------- ADVANCED ---------------- */
+
+{ tier:'adv', q:'Рассчитайте NPV проекта и сделайте вывод.',
+  g:`<p>Инвестиции <b>1 000 тыс. руб.</b> в момент 0. Чистый денежный поток <b>400 тыс. руб.</b> в конце каждого из 4 лет. Ставка дисконтирования <b>10%</b>.</p>`,
+  o:['NPV = +267,9 тыс. руб. → принять', 'NPV = +1 267,9 тыс. руб. → принять',
+     'NPV = +600,0 тыс. руб. → принять', 'NPV = −132,0 тыс. руб. → отклонить'], c:0,
+  e:`<p>Коэффициент аннуитета за 4 года при 10%:</p>
+     <p class="calc">0,9091 + 0,8264 + 0,7513 + 0,6830 = 3,1699
+PV = 400 × 3,1699 = 1 267,9
+NPV = 1 267,9 − 1 000 = +267,9 тыс. руб.</p>
+     <p>Вариант «+1 267,9» — это PV притоков без вычета инвестиций; «+600» — недисконтированная сумма (4 × 400 − 1 000).</p>
+     <p>Дополнительно: PI = 1 267,9 / 1 000 = 1,27. IRR находится из условия «фактор аннуитета = 1 000/400 = 2,50», что соответствует ≈ 21,9% — существенно выше барьерных 10%.</p>` },
+
+{ tier:'adv', q:'Рассчитайте MIRR и примите решение.',
+  g:`<p>Инвестиции <b>1 000 тыс. руб.</b> Потоки по годам: <b>300, 400, 500 тыс. руб.</b> Стоимость капитала и ставка реинвестирования — <b>10%</b>.</p>`,
+  o:['MIRR = 30,3% → принять', 'MIRR = 9,2% → отклонить', 'MIRR = 9,2% → принять',
+     'MIRR = 12,3% → принять'], c:1,
+  e:`<p>Наращиваем притоки к концу 3-го года по ставке реинвестирования, затем находим ставку, уравнивающую эту сумму с инвестициями:</p>
+     <p class="calc">FV = 300 × 1,1² + 400 × 1,1 + 500
+   = 363 + 440 + 500 = 1 303
+MIRR = (1 303 / 1 000)^(1/3) − 1 = 9,2%</p>
+     <p>MIRR 9,2% ниже стоимости капитала 10% → проект отклонить. Проверка через NPV подтверждает: 272,7 + 330,6 + 375,7 − 1 000 = <b>−21,0 тыс. руб.</b></p>
+     <p>Ответ «30,3%» получается, если забыть извлечь корень 3-й степени, то есть взять доходность за все три года как годовую.</p>
+     <p><b>Чем MIRR лучше IRR:</b> снимает нереалистичное допущение о реинвестировании промежуточных потоков по самой ставке IRR; даёт единственное значение даже при знакопеременных потоках; лучше согласуется с NPV при ранжировании.</p>` },
+
+{ tier:'adv', q:'Какая проблема возникает при использовании IRR и как её решать?',
+  g:`<p>Денежные потоки проекта: <b>−1 000, +5 000, −6 000</b> тыс. руб. (крупный отток в последнем году — например, рекультивация или вывод объекта из эксплуатации).</p>`,
+  o:['IRR не существует, проект следует отклонить',
+     'Проект имеет две IRR (100% и 200%) — критерий неприменим, решение принимается по NPV или MIRR',
+     'IRR = 100%, второй корень отбрасывается как посторонний',
+     'IRR равна среднему двух корней, то есть 150%'], c:1,
+  e:`<p>Знак потока меняется дважды, поэтому по правилу знаков Декарта уравнение NPV(r) = 0 может иметь до двух корней. Обозначив x = 1/(1+r):</p>
+     <p class="calc">−1 000 + 5 000x − 6 000x² = 0
+x = 0,5  →  IRR = 100%
+x = 1/3  →  IRR = 200%</p>
+     <p>Оба корня формально удовлетворяют определению, но экономического смысла барьерной ставки не несёт ни один: NPV(r) не монотонна, и правило «IRR > WACC» перестаёт работать.</p>
+     <p><b>Что делать:</b> опираться на NPV — единственный критерий, корректный при любой форме потока; либо использовать MIRR, который по построению даёт единственное значение.</p>` },
+
+{ tier:'adv', q:'Взаимоисключающие проекты занимают одну и ту же производственную площадку. Какой выбрать?',
+  g:`<p>Проект <b>А</b>: срок 3 года, NPV = 600 тыс. руб.<br>Проект <b>Б</b>: срок 6 лет, NPV = 1 000 тыс. руб.<br>Ставка дисконтирования 10%.</p>`,
+  o:['Проект Б — его NPV на 400 тыс. руб. больше',
+     'Проект А — эквивалентный аннуитет 241,3 против 229,6 тыс. руб./год',
+     'Проекты равноценны: разница в NPV компенсируется разницей в сроках',
+     'Сравнение невозможно без данных о потоках по годам'], c:1,
+  e:`<p>Прямое сравнение NPV некорректно: проекты занимают ресурс разное время. Приводим к сопоставимому виду через среднегодовой эквивалент:</p>
+     <p class="calc">EAA = NPV / коэффициент аннуитета
+EAA(А) = 600 / 2,4869 = 241,3 тыс. руб./год
+EAA(Б) = 1 000 / 4,3553 = 229,6 тыс. руб./год</p>
+     <p>Эквивалентный подход — метод цепного повтора: два цикла А за 6 лет дают 600 + 600/1,1³ = <b>1 050,8</b> против 1 000 у Б.</p>
+     <p><b>Оговорка:</b> метод предполагает возможность повторения проекта на тех же условиях. Если технология уникальна и повтор невозможен, сравнивают NPV напрямую — и тогда выбирают Б.</p>` },
+
+{ tier:'adv', q:'Рассчитайте WACC компании.',
+  g:`<p>Структура капитала: <b>60%</b> собственный (стоимость <b>15%</b>), <b>40%</b> заёмный (ставка <b>10%</b>). Налог на прибыль <b>20%</b>.</p>`,
+  o:['12,2%', '13,0%', '12,5%', '10,4%'], c:0,
+  e:`<p class="calc">WACC = wₑ·rₑ + w_d·r_d·(1 − T)
+     = 0,6 × 15% + 0,4 × 10% × 0,8
+     = 9,0% + 3,2% = 12,2%</p>
+     <p>Множитель (1 − T) отражает налоговый щит по процентам: они уменьшают налогооблагаемую прибыль, поэтому фактическая стоимость долга — 8%, а не 10%. Ответ 13,0% получается без учёта щита, 12,5% — простое среднее без весов, 10,4% — если ошибочно применить щит ко всей WACC.</p>
+     <p><b>Почему проценты по кредиту не входят в денежный поток проекта:</b> стоимость финансирования уже заложена в ставку дисконтирования. Включив проценты в поток и продисконтировав по WACC, вы учтёте затраты на капитал дважды и занизите NPV.</p>` },
+
+/* ---------------- CASES ---------------- */
+
+{ tier:'case', q:'Кейс: замена оборудования. Стоит ли покупать станок?',
+  g:`<p>Станок стоит <b>5 000 тыс. руб.</b>, срок службы 5 лет, амортизация линейная до нуля, ликвидационная стоимость нулевая. Он сокращает операционные затраты на <b>1 800 тыс. руб. в год</b>. Выручка не меняется. Налог на прибыль 20%, барьерная ставка 12%.</p>`,
+  o:['Да, NPV ≈ +912 тыс. руб.', 'Да, NPV ≈ +1 489 тыс. руб.',
+     'Да, NPV ≈ +191 тыс. руб.', 'Нет, NPV ≈ −2 693 тыс. руб.'], c:0,
+  e:`<p>Годовая амортизация = 5 000 / 5 = 1 000 тыс. руб. Релевантен только прирост потока, то есть экономия затрат:</p>
+     <p class="calc">CF = 1 800 × 0,8 + 1 000 × 0,2 = 1 640 тыс. руб.
+PV = 1 640 × 3,6048 = 5 911,8
+NPV = 5 911,8 − 5 000 = +911,8 тыс. руб.</p>
+     <p>IRR: фактор аннуитета 5 000/1 640 = 3,0488 → ≈ <b>19,1%</b> против барьерных 12%. PP ≈ 3,05 года, DPP ≈ 4,0 года.</p>
+     <p>Остальные варианты — типичные ошибки: +1 489 при полном игнорировании налога, +191 без амортизационного щита (он даёт 200 тыс. в год, то есть более 20% NPV проекта), −2 693 если вычесть амортизацию как денежный отток.</p>
+     <p>Если бы у старого станка была ненулевая остаточная стоимость, потребовалось бы учесть выручку от его продажи, налог с неё и <b>потерю</b> его собственного амортизационного щита.</p>` },
+
+{ tier:'case', q:'Кейс: ограниченный бюджет. Какой набор проектов выбрать?',
+  g:`<p>Бюджет капвложений — <b>100 млн руб.</b> Проекты неделимы: взять половину проекта нельзя.</p>
+     <div class="scroll"><table>
+      <thead><tr><th>Проект</th><th>Инвестиции</th><th>NPV</th><th>PI</th></tr></thead>
+      <tbody>
+        <tr><td>А</td><td>50</td><td>12</td><td>1,240</td></tr>
+        <tr><td>Б</td><td>40</td><td>11</td><td>1,275</td></tr>
+        <tr><td>В</td><td>30</td><td>8</td><td>1,267</td></tr>
+        <tr><td>Г</td><td>60</td><td>14</td><td>1,233</td></tr>
+      </tbody></table></div>`,
+  o:['Б + В — по убыванию PI, Σ NPV = 19 млн', 'Б + Г — Σ NPV = 25 млн',
+     'А + Б — Σ NPV = 23 млн', 'Только Г — проект с максимальной NPV'], c:1,
+  e:`<p>Ранжирование по PI даёт Б (1,275) → В (1,267) → А (1,24) → Г (1,233). Следуя ему, берём Б + В = 70 млн, Σ NPV = 19 млн, и <b>30 млн бюджета остаются неиспользованными</b>: ни А, ни Г в остаток не помещаются.</p>
+     <p>Полный перебор допустимых комбинаций:</p>
+     <p class="calc">Б + Г   100 млн   Σ NPV = 25  ← максимум
+А + Б    90 млн   Σ NPV = 23
+В + Г    90 млн   Σ NPV = 22
+А + В    80 млн   Σ NPV = 20
+Б + В    70 млн   Σ NPV = 19</p>
+     <p><b>Вывод:</b> правило «ранжировать по PI» корректно только для <b>делимых</b> проектов, когда остаток бюджета можно доинвестировать частично. Для неделимых это задача о рюкзаке — максимизация суммарной NPV при бюджетном ограничении.</p>
+     <p>Отдельно стоит проверить, что ограничение бюджета реально: если проект с положительной NPV можно профинансировать на рынке, отказ от него — прямая потеря стоимости.</p>` },
+
+{ tier:'case', q:'Кейс: релевантные потоки. Какие позиции нужно включить в расчёт NPV?',
+  g:`<p>Компания оценивает запуск нового продукта:</p>
+     <ol>
+       <li>Уже потрачено 3 млн руб. на маркетинговое исследование.</li>
+       <li>Будет задействован собственный участок земли рыночной стоимостью 20 млн руб.</li>
+       <li>Новый продукт заберёт 15% продаж существующей линейки — упущенная маржа 6 млн руб./год.</li>
+       <li>На проект распределят 2 млн руб./год общекорпоративных накладных; их общая сумма не изменится.</li>
+       <li>Потребуется прирост оборотного капитала 8 млн руб.</li>
+       <li>Проценты по кредиту на финансирование — 4 млн руб./год.</li>
+     </ol>`,
+  o:['Позиции 2, 3, 5', 'Позиции 1, 2, 3, 5', 'Позиции 2, 5', 'Позиции 2, 3, 5, 6'], c:0,
+  e:`<p><b>2 — да.</b> Альтернативная стоимость: участок можно продать за 20 млн. «Бесплатным» он выглядит только с бухгалтерской точки зрения, отражается как отток в момент 0.</p>
+     <p><b>3 — да.</b> Каннибализация: без проекта эта маржа сохранилась бы, значит это приростной отток.</p>
+     <p><b>5 — да.</b> Прирост оборотного капитала — отток в момент 0 (или по мере наращивания продаж) и возврат притоком в последний год проекта.</p>
+     <p><b>1 — нет.</b> Невозвратные затраты: понесены независимо от решения.</p>
+     <p><b>4 — нет.</b> Накладные распределяемые, а не приростные: общая сумма не меняется. Включать нужно только <b>прирост</b> накладных расходов.</p>
+     <p><b>6 — нет.</b> Стоимость финансирования учтена в ставке дисконтирования; включение процентов в поток даёт двойной счёт.</p>
+     <p><b>Проверочный вопрос по каждой строке:</b> «Будет ли этот денежный поток другим, если проект не запускать?»</p>` },
+
+{ tier:'case', q:'Кейс: сценарный анализ. Какая оценка корректна?',
+  g:`<div class="scroll"><table>
+      <thead><tr><th>Сценарий</th><th>Вероятность</th><th>NPV, млн руб.</th></tr></thead>
+      <tbody>
+        <tr><td>Оптимистичный</td><td>0,25</td><td>+120</td></tr>
+        <tr><td>Базовый</td><td>0,50</td><td>+50</td></tr>
+        <tr><td>Пессимистичный</td><td>0,25</td><td>−80</td></tr>
+      </tbody></table></div>`,
+  o:['E(NPV) = +30 млн — среднее арифметическое трёх сценариев',
+     'E(NPV) = +35 млн, σ = 72,3 млн: проект формально приемлем, но требует оценки допустимости убытка',
+     'E(NPV) = +35 млн, риска нет — ожидаемая NPV положительна',
+     'Проект отклонить: наличие сценария с отрицательной NPV делает его неприемлемым'], c:1,
+  e:`<p class="calc">E(NPV) = 0,25×120 + 0,50×50 + 0,25×(−80)
+       = 30 + 25 − 20 = +35 млн руб.
+D = 0,25×85² + 0,50×15² + 0,25×115² = 5 225
+σ = 72,3 млн   CV = 72,3 / 35 = 2,07</p>
+     <p>Вариант «+30 млн» — среднее арифметическое (120 + 50 − 80)/3, то есть расчёт без учёта вероятностей.</p>
+     <p><b>Интерпретация:</b> ожидаемая NPV положительна, но разброс превышает её вдвое, а вероятность убытка — 25%, причём потенциальный убыток сопоставим по масштабу с ожидаемым выигрышем. Правила «E(NPV) > 0 → принять» здесь недостаточно.</p>
+     <ul>
+       <li>Найти анализом чувствительности 2–3 ключевых драйвера (обычно цена и объём) и рассчитать по ним точки безубыточности NPV.</li>
+       <li>Оценить, не катастрофичен ли риск для компании: убыток 80 млн при собственном капитале 100 млн — угроза существованию, и проект отклоняют независимо от E(NPV).</li>
+       <li>Искать способы разделить риск: пилотный запуск, поэтапное инвестирование, предварительные контракты, партнёрство.</li>
+       <li>Не «наказывать» проект дважды: если риск уже учтён надбавкой в ставке дисконтирования, второй раз корректировать потоки не нужно.</li>
+     </ul>` },
+
+{ tier:'case', q:'Кейс: реальный опцион. Инвестировать сейчас или подождать?',
+  g:`<p>Инвестиции <b>100 млн руб.</b>, PV ожидаемых потоков сегодня — <b>105 млн</b>, то есть NPV = +5 млн. Через год станет известен спрос: при высоком (вероятность 0,5) PV потоков составит <b>160 млн</b>, при низком — <b>60 млн</b>. Стоимость инвестиций через год та же. Ставка 10%.</p>`,
+  o:['Инвестировать сейчас: NPV = +5 млн > 0',
+     'Отложить решение на год: приведённая стоимость такой стратегии ≈ 27 млн против 5 млн',
+     'Отклонить проект: ожидаемый PV (0,5×160 + 0,5×60 = 110) лишь немного превышает инвестиции',
+     'Инвестировать сейчас и закрыть проект через год при низком спросе'], c:1,
+  e:`<p><b>Инвестировать сейчас:</b> NPV = 105 − 100 = +5 млн. Компания принимает оба исхода, включая убыточный (60 − 100 = −40 млн).</p>
+     <p><b>Подождать год:</b> решение принимается уже при известном спросе.</p>
+     <p class="calc">Высокий спрос (0,5): 160 − 100 = +60 млн
+Низкий спрос  (0,5): не инвестируем → 0
+E = 0,5 × 60 = 30 млн (через год)
+PV = 30 / 1,1 ≈ 27,3 млн руб.
+Стоимость опциона = 27,3 − 5 = 22,3 млн</p>
+     <p>Классическая NPV неявно предполагает, что решение принимается «сейчас или никогда» и потом не пересматривается. Ценность отсрочки создаётся <b>асимметрией</b>: разрешив неопределённость, компания забирает верхний сценарий и отсекает нижний.</p>
+     <p><b>Когда ждать не следует:</b> если отсрочка означает потерю доли рынка, истечение лицензии или вход конкурента, выгода от ожидания уменьшается и может стать отрицательной.</p>
+     <p><b>Методическая оговорка:</b> в строгой модели поток опциона дисконтируется по безрисковой ставке в риск-нейтральных вероятностях (биномиальная модель, Блэка–Шоулза). Упрощённый расчёт показывает порядок величины и направление решения.</p>` }
+];
+
+const KEYS = ['А', 'Б', 'В', 'Г'];
+let idx = 0;
+let answers = new Array(Q.length).fill(null);
+
+const el = id => document.getElementById(id);
+const rail = el('rail'), ticks = el('ticks'), card = el('card');
+
+function buildTicks() {
+  ticks.innerHTML = '';
+  Q.forEach((_, i) => {
+    const t = document.createElement('div');
+    t.className = 'tick';
+    ticks.appendChild(t);
+  });
+}
+
+function paintRail() {
+  [...ticks.children].forEach((t, i) => {
+    t.className = 'tick';
+    if (answers[i] !== null) t.classList.add(answers[i] === Q[i].c ? 'done-ok' : 'done-bad');
+    if (i === idx) t.classList.add('now');
+  });
+  el('railTier').textContent = TIERS[Q[idx].tier];
+  el('railCount').textContent = String(idx + 1).padStart(2, '0') + ' / ' + Q.length;
+  const errs = answers.reduce((s, a, i) => s + (a !== null && a !== Q[i].c ? 1 : 0), 0);
+  el('railErr').textContent = errs;
+}
+
+function render() {
+  const q = Q[idx];
+  card.className = 'card anim';
+  card.innerHTML = `
+    <div class="card-head">
+      <span class="qnum">Вопрос ${String(idx + 1).padStart(2, '0')}</span>
+      <span class="tier">${TIERS[q.tier]}</span>
+    </div>
+    <p class="qtext">${q.q}</p>
+    ${q.g ? `<div class="given">${q.g}</div>` : ''}
+    <div class="options" id="opts"></div>
+    <div id="fb"></div>
+    <div class="nav" id="nav"></div>
+    <p class="hint" id="hint">Клавиши 1–4 — выбор варианта</p>`;
+
+  const opts = el('opts');
+  q.o.forEach((text, i) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.type = 'button';
+    b.innerHTML = `<span class="key">${KEYS[i]}</span><span class="txt">${text}</span><span class="mark">✓</span>`;
+    b.addEventListener('click', () => choose(i));
+    opts.appendChild(b);
+  });
+
+  if (answers[idx] !== null) lock();
+  paintRail();
+}
+
+function choose(i) {
+  if (answers[idx] !== null) return;
+  answers[idx] = i;
+  lock();
+  paintRail();
+}
+
+function lock() {
+  const q = Q[idx], pick = answers[idx], correct = pick === q.c;
+  [...el('opts').children].forEach((b, i) => {
+    b.disabled = true;
+    if (i === pick) b.classList.add(correct ? 'picked-ok' : 'picked-bad');
+    else if (i === q.c) b.classList.add('reveal');
+    else b.classList.add('dim');
+    if (i === pick && !correct) b.querySelector('.mark').textContent = '✕';
+    if (i === q.c) b.querySelector('.mark').textContent = '✓';
+  });
+
+  el('fb').innerHTML = `
+    <div class="feedback anim">
+      <div class="verdict ${correct ? 'ok' : 'bad'}">${correct ? 'Верно' : 'Неверно · правильный ответ ' + KEYS[q.c]}</div>
+      <div class="explain">${q.e}</div>
+    </div>`;
+
+  const nav = el('nav');
+  nav.innerHTML = '';
+  if (idx > 0) {
+    const back = document.createElement('button');
+    back.className = 'btn ghost';
+    back.textContent = 'Назад';
+    back.addEventListener('click', () => { idx--; render(); scrollTop(); });
+    nav.appendChild(back);
+  }
+  const next = document.createElement('button');
+  next.className = 'btn';
+  next.textContent = idx === Q.length - 1 ? 'Показать результат' : 'Следующий вопрос';
+  next.addEventListener('click', advance);
+  nav.appendChild(next);
+  next.focus({ preventScroll: true });
+  el('hint').textContent = idx === Q.length - 1 ? 'Enter — результат' : 'Enter — следующий вопрос';
+}
+
+function advance() {
+  if (idx === Q.length - 1) { showResult(); return; }
+  idx++;
+  render();
+  scrollTop();
+}
+
+function scrollTop() {
+  window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+
+function plural(n, forms) {
+  const n10 = n % 10, n100 = n % 100;
+  if (n10 === 1 && n100 !== 11) return forms[0];
+  if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return forms[1];
+  return forms[2];
+}
+
+function showResult() {
+  const wrongIdx = answers.map((a, i) => a !== Q[i].c ? i : -1).filter(i => i >= 0);
+  const errs = wrongIdx.length, right = Q.length - errs;
+
+  rail.classList.add('hidden');
+  el('screenQuiz').classList.add('hidden');
+  el('screenResult').classList.remove('hidden');
+
+  el('errBig').textContent = errs;
+  el('errWord').innerHTML = `${plural(errs, ['ошибка', 'ошибки', 'ошибок'])} из ${Q.length}<br><b>${right}</b> ${plural(right, ['правильный ответ', 'правильных ответа', 'правильных ответов'])}`;
+
+  const score = Math.round(right / Q.length * 100);
+  let grade;
+  if (errs === 0) grade = 'Безупречно. Методика оценки инвестиционных проектов освоена полностью.';
+  else if (errs <= 3) grade = 'Отличный результат — материал усвоен, ошибки единичные.';
+  else if (errs <= 6) grade = 'Хороший результат. Стоит вернуться к темам, отмеченным ниже.';
+  else if (errs <= 10) grade = 'Удовлетворительно. База есть, но расчётные методы требуют повторения.';
+  else grade = 'Материал стоит проработать заново — начните с базовых понятий NPV, IRR и релевантных потоков.';
+  el('grade').textContent = grade;
+  el('footScore').textContent = score + '% верных ответов';
+
+  const tiers = [
+    { k: 'base', name: 'Базовый уровень', hint: 'вопросы 1–10' },
+    { k: 'adv', name: 'Продвинутый уровень', hint: 'вопросы 11–15' },
+    { k: 'case', name: 'Анализ кейсов', hint: 'вопросы 16–20' }
+  ];
+  el('bars').innerHTML = tiers.map(t => {
+    const ids = Q.map((q, i) => q.tier === t.k ? i : -1).filter(i => i >= 0);
+    const ok = ids.filter(i => answers[i] === Q[i].c).length;
+    const pct = Math.round(ok / ids.length * 100);
+    return `<div class="bar-row">
+        <span class="label">${t.name} <span style="color:var(--muted)">· ${t.hint}</span></span>
+        <span class="val">${ok} / ${ids.length}</span>
+        <span class="bar-track"><span class="bar-fill" style="width:${pct}%"></span></span>
+      </div>`;
+  }).join('');
+
+  const review = el('review');
+  if (!wrongIdx.length) {
+    review.innerHTML = `<p class="clean">Разбирать нечего — все 20 ответов верны.</p>`;
+  } else {
+    review.innerHTML = `<p class="eyebrow" style="padding:1.25rem 0 .35rem">Разбор ошибок · ${wrongIdx.length}</p>` +
+      wrongIdx.map(i => {
+        const q = Q[i];
+        return `<details class="miss">
+          <summary>
+            <span class="n">№ ${String(i + 1).padStart(2, '0')}</span>
+            <span class="t">${q.q}</span>
+            <span class="chev">↓</span>
+          </summary>
+          <div class="miss-body">
+            <div class="ans">
+              <span class="yours"><em>Ваш ответ</em>${KEYS[answers[i]]} — ${q.o[answers[i]]}</span>
+              <span class="right"><em>Верно</em>${KEYS[q.c]} — ${q.o[q.c]}</span>
+            </div>
+            <div class="explain">${q.e}</div>
+          </div>
+        </details>`;
+      }).join('');
+  }
+  scrollTop();
+}
+
+function start() {
+  idx = 0;
+  answers = new Array(Q.length).fill(null);
+  buildTicks();
+  el('screenIntro').classList.add('hidden');
+  el('screenResult').classList.add('hidden');
+  el('screenQuiz').classList.remove('hidden');
+  rail.classList.remove('hidden');
+  render();
+  scrollTop();
+}
+
+el('startBtn').addEventListener('click', start);
+el('againBtn').addEventListener('click', start);
+
+document.addEventListener('keydown', e => {
+  if (el('screenQuiz').classList.contains('hidden')) return;
+  if (e.key >= '1' && e.key <= '4') {
+    const i = Number(e.key) - 1;
+    if (i < Q[idx].o.length && answers[idx] === null) { choose(i); e.preventDefault(); }
+  } else if ((e.key === 'Enter' || e.key === 'ArrowRight') && answers[idx] !== null) {
+    advance(); e.preventDefault();
+  } else if (e.key === 'ArrowLeft' && idx > 0) {
+    idx--; render(); scrollTop(); e.preventDefault();
+  }
+});
+</script>
