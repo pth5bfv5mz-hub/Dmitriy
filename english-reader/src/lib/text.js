@@ -19,10 +19,14 @@ const FUNCTION_WORDS = new Set(
 
 const WORD_PATTERN = /[A-Za-z]+(?:['’][A-Za-z]+)*/g;
 
-/** Разбивает абзац на предложения (нужно для контекста при переводе слова). */
+/**
+ * Разбивает абзац на предложения (нужно для контекста при переводе слова).
+ * Пробелы между предложениями намеренно сохраняются: они попадают в токены
+ * и не дают словам слипнуться при отрисовке.
+ */
 export function splitSentences(paragraph) {
   const matches = paragraph.match(/[^.!?]+[.!?]*\s*/g);
-  return matches ? matches.map((sentence) => sentence.trim()).filter(Boolean) : [paragraph];
+  return matches?.filter((sentence) => sentence.trim()) ?? [paragraph];
 }
 
 /**

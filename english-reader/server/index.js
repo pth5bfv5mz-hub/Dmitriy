@@ -2,12 +2,10 @@ import 'dotenv/config';
 import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 import { ApiError, ask, askJson, MODEL } from './claude.js';
 import { GENRES, getGenre, resolveRequest } from './genres.js';
-import * as store from './store.js';
 import {
   chatSummaryPrompt,
   chatSystemPrompt,
@@ -16,22 +14,20 @@ import {
   wordPrompt,
 } from './prompts.js';
 
+/**
+ * Сервер без состояния: он только ходит в Anthropic API и отдаёт фронтенд.
+ * Библиотека текстов и весь прогресс хранятся в браузере пользователя
+ * (localStorage), поэтому перезапуск сервера ничего не теряет — это важно
+ * для бесплатных хостингов с временной файловой системой.
+ */
+
 const here = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT) || 8787;
 
-/** Обёртка, чтобы не писать try/catch в каждом маршруте. */
 const route = (handler) => (req, res, next) => Promise.resolve(handler(req, res)).catch(next);
-
-const plainText = (text) => text.paragraphs.join('\n\n');
-
-async function requireText(id) {
-  const text = await store.getText(id);
-  if (!text) throw new ApiError(404, 'Текст не найден.');
-  return text;
-}
 
 // ---------------------------------------------------------------- справочники
 
@@ -50,22 +46,6 @@ app.get('/api/genres', (req, res) => {
     })),
   );
 });
-
-// ------------------------------------------------------------------ библиотека
-
-app.get('/api/texts', route(async (req, res) => {
-  res.json(await store.listTexts());
-}));
-
-app.get('/api/texts/:id', route(async (req, res) => {
-  res.json(await requireText(req.params.id));
-}));
-
-app.delete('/api/texts/:id', route(async (req, res) => {
-  const removed = await store.removeText(req.params.id);
-  if (!removed) throw new ApiError(404, 'Текст не найден.');
-  res.json({ ok: true });
-}));
 
 // --------------------------------------------------------- генерация текста
 
@@ -100,212 +80,114 @@ function normalizeGenerated(data) {
   return { title, paragraphs, questions };
 }
 
-app.post('/api/texts', route(async (req, res) => {
+app.post('/api/generate', route(async (req, res) => {
   const { genre: genreId, topic } = req.body ?? {};
   if (genreId && genreId !== 'surprise' && !getGenre(genreId)) {
     throw new ApiError(400, 'Неизвестный жанр.');
   }
 
   const { genre, topic: resolvedTopic, topicWasRandom } = resolveRequest({ genre: genreId, topic });
-  const generated = normalizeGenerated(await askJson({ ...textPrompt({ genre, topic: resolvedTopic }), maxTokens: 3000, effort: 'high' }));
+  const generated = normalizeGenerated(
+    await askJson({ ...textPrompt({ genre, topic: resolvedTopic }), maxTokens: 3000, effort: 'high' }),
+  );
 
-  const text = {
-    id: randomUUID(),
+  res.json({
     ...generated,
     topic: resolvedTopic,
     topicWasRandom,
     genre: { id: genre.id, label: genre.label, emoji: genre.emoji },
-    createdAt: new Date().toISOString(),
-    status: 'new',
-    lastStep: 'read',
-    glossary: {},
-    quizResult: null,
-    retelling: null,
-    chat: [],
-    chatSummary: null,
-  };
-
-  await store.addText(text);
-  res.status(201).json(text);
-}));
-
-// ------------------------------------------------------------------ прогресс
-
-const STATUS_ORDER = ['new', 'reading', 'quiz_done', 'chat_done'];
-
-/** Статус только растёт: возврат к чтению не сбрасывает пройденный тест. */
-function advanceStatus(text, status) {
-  if (STATUS_ORDER.indexOf(status) > STATUS_ORDER.indexOf(text.status)) {
-    text.status = status;
-  }
-}
-
-app.patch('/api/texts/:id/progress', route(async (req, res) => {
-  const { status, lastStep } = req.body ?? {};
-  const text = await store.updateText(req.params.id, (item) => {
-    if (status && STATUS_ORDER.includes(status)) advanceStatus(item, status);
-    if (lastStep) item.lastStep = lastStep;
   });
-  if (!text) throw new ApiError(404, 'Текст не найден.');
-  res.json({ status: text.status, lastStep: text.lastStep });
 }));
 
 // ------------------------------------------------------- перевод слова
 
-app.post('/api/texts/:id/word', route(async (req, res) => {
+app.post('/api/word', route(async (req, res) => {
   const word = String(req.body?.word ?? '').trim();
   const sentence = String(req.body?.sentence ?? '').trim();
+  const title = String(req.body?.title ?? '').trim();
+  const genre = String(req.body?.genre ?? '').trim();
   if (!word) throw new ApiError(400, 'Не передано слово.');
 
-  const text = await requireText(req.params.id);
-  const key = `${word.toLowerCase()}::${sentence.slice(0, 60).toLowerCase()}`;
-  const cached = text.glossary?.[key];
-  if (cached) {
-    res.json({ ...cached, cached: true });
-    return;
-  }
-
   const data = await askJson({
-    ...wordPrompt({ word, sentence, title: text.title, genre: text.genre.label }),
+    ...wordPrompt({ word, sentence, title, genre }),
     maxTokens: 400,
     effort: 'low',
   });
 
-  const entry = {
+  res.json({
     word: String(data?.word ?? word),
     lemma: String(data?.lemma ?? word),
     translation: String(data?.translation ?? '').trim() || '—',
     pos: String(data?.pos ?? '').trim(),
     note: String(data?.note ?? '').trim(),
-  };
-
-  await store.updateText(text.id, (item) => {
-    item.glossary ??= {};
-    item.glossary[key] = entry;
-    advanceStatus(item, 'reading');
   });
-
-  res.json({ ...entry, cached: false });
-}));
-
-// ------------------------------------------------------------------- тест
-
-app.post('/api/texts/:id/quiz', route(async (req, res) => {
-  const answers = Array.isArray(req.body?.answers) ? req.body.answers : null;
-  if (!answers) throw new ApiError(400, 'Не переданы ответы.');
-
-  const text = await requireText(req.params.id);
-  const details = text.questions.map((question, index) => ({
-    index,
-    given: answers[index],
-    correctIndex: question.correctIndex,
-    isCorrect: answers[index] === question.correctIndex,
-    explanation: question.explanation,
-  }));
-
-  const result = {
-    answers,
-    details,
-    correct: details.filter((d) => d.isCorrect).length,
-    total: text.questions.length,
-    at: new Date().toISOString(),
-  };
-
-  await store.updateText(text.id, (item) => {
-    item.quizResult = result;
-    item.lastStep = 'quiz';
-    advanceStatus(item, 'quiz_done');
-  });
-
-  res.json(result);
 }));
 
 // -------------------------------------------------------------- пересказ
 
-app.post('/api/texts/:id/retelling', route(async (req, res) => {
+app.post('/api/retelling', route(async (req, res) => {
   const retelling = String(req.body?.retelling ?? '').trim();
+  const title = String(req.body?.title ?? '').trim();
+  const text = String(req.body?.text ?? '').trim();
   if (retelling.length < 20) {
     throw new ApiError(400, 'Пересказ слишком короткий — напишите хотя бы пару предложений.');
   }
+  if (!text) throw new ApiError(400, 'Не передан текст.');
 
-  const text = await requireText(req.params.id);
   const feedback = await askJson({
-    ...retellingPrompt({ title: text.title, text: plainText(text), retelling }),
+    ...retellingPrompt({ title, text, retelling }),
     maxTokens: 2000,
     effort: 'medium',
   });
 
-  const record = { text: retelling, feedback, at: new Date().toISOString() };
-  await store.updateText(text.id, (item) => {
-    item.retelling = record;
-    item.lastStep = 'retell';
-    advanceStatus(item, 'quiz_done');
-  });
-
-  res.json(record);
+  res.json(feedback);
 }));
 
 // ---------------------------------------------------------------- диалог
 
-app.post('/api/texts/:id/chat', route(async (req, res) => {
+app.post('/api/chat', route(async (req, res) => {
   const message = String(req.body?.message ?? '').trim();
-  const text = await requireText(req.params.id);
+  const title = String(req.body?.title ?? '').trim();
+  const text = String(req.body?.text ?? '').trim();
+  const genre = String(req.body?.genre ?? '').trim();
+  if (!text) throw new ApiError(400, 'Не передан текст.');
 
-  const history = (text.chat ?? []).map(({ role, content }) => ({ role, content }));
-  // Пустое сообщение = «начни разговор»: модели нужен первый user-ход.
-  const outgoing = message || 'Let\'s talk about the text. Please start.';
+  const history = Array.isArray(req.body?.history)
+    ? req.body.history
+        .filter((turn) => turn && (turn.role === 'user' || turn.role === 'assistant') && turn.content)
+        .slice(-30)
+        .map((turn) => ({ role: turn.role, content: String(turn.content) }))
+    : [];
+
+  // Модели нужен user-ход, поэтому старт диалога отправляем как просьбу начать.
+  const outgoing = message || "Let's talk about the text. Please start.";
   const messages = [...history, { role: 'user', content: outgoing }];
 
   const reply = await ask({
-    system: chatSystemPrompt({
-      title: text.title,
-      text: plainText(text),
-      genre: text.genre.label,
-    }),
+    system: chatSystemPrompt({ title, text, genre }),
     messages,
     maxTokens: 700,
     effort: 'low',
   });
 
-  const now = new Date().toISOString();
-  const turns = [];
-  if (message) turns.push({ role: 'user', content: message, at: now });
-  turns.push({ role: 'assistant', content: reply, at: now });
-
-  await store.updateText(text.id, (item) => {
-    item.chat ??= [];
-    // Стартовую заглушку в историю не пишем — она нужна только API.
-    if (!message && item.chat.length === 0) {
-      item.chat.push({ role: 'user', content: outgoing, at: now, hidden: true });
-    }
-    item.chat.push(...turns);
-    item.lastStep = 'chat';
-    advanceStatus(item, 'quiz_done');
-  });
-
-  res.json({ reply, turns });
+  res.json({ reply, sent: outgoing, wasKickoff: !message });
 }));
 
-app.post('/api/texts/:id/chat/summary', route(async (req, res) => {
-  const text = await requireText(req.params.id);
-  const visible = (text.chat ?? []).filter((turn) => !turn.hidden);
-  if (visible.filter((turn) => turn.role === 'user').length < 2) {
+app.post('/api/chat/summary', route(async (req, res) => {
+  const title = String(req.body?.title ?? '').trim();
+  const turns = Array.isArray(req.body?.history) ? req.body.history : [];
+  if (turns.filter((turn) => turn.role === 'user').length < 2) {
     throw new ApiError(400, 'Слишком короткий диалог — напишите хотя бы пару реплик.');
   }
 
-  const transcript = visible
+  const transcript = turns
     .map((turn) => `${turn.role === 'user' ? 'LEARNER' : 'TUTOR'}: ${turn.content}`)
     .join('\n\n');
 
   const summary = await askJson({
-    ...chatSummaryPrompt({ title: text.title, transcript }),
+    ...chatSummaryPrompt({ title, transcript }),
     maxTokens: 1500,
     effort: 'medium',
-  });
-
-  await store.updateText(text.id, (item) => {
-    item.chatSummary = { ...summary, at: new Date().toISOString() };
-    advanceStatus(item, 'chat_done');
   });
 
   res.json(summary);
@@ -326,7 +208,7 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`English Reader API → http://localhost:${PORT}  (модель: ${MODEL})`);
+  console.log(`English Reader → http://localhost:${PORT}  (модель: ${MODEL})`);
   if (!process.env.ANTHROPIC_API_KEY) {
     console.warn('⚠  ANTHROPIC_API_KEY не задан — генерация работать не будет. См. .env.example');
   }

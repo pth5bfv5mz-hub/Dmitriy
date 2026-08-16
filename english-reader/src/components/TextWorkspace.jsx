@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api } from '../api.js';
+import * as library from '../lib/library.js';
 import Reader from './Reader.jsx';
 import Quiz from './Quiz.jsx';
 import Retelling from './Retelling.jsx';
@@ -16,19 +16,22 @@ export default function TextWorkspace({ text, onChange, onBack, onNotify }) {
   const [step, setStep] = useState(text.lastStep ?? 'read');
 
   // Тексту нужен свежий снимок после каждого действия (словарь, тест, чат).
-  const reload = useCallback(async () => {
-    try {
-      onChange(await api.getText(text.id));
-    } catch (error) {
-      onNotify(error.message);
-    }
-  }, [text.id, onChange, onNotify]);
+  const reload = useCallback(() => {
+    const fresh = library.getText(text.id);
+    if (fresh) onChange(fresh);
+  }, [text.id, onChange]);
 
   const goTo = useCallback(
     (next) => {
       setStep(next);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      api.saveProgress(text.id, { lastStep: next }).catch(() => {});
+      try {
+        library.updateText(text.id, (item) => {
+          item.lastStep = next;
+        });
+      } catch {
+        /* не критично: шаг просто не запомнится */
+      }
     },
     [text.id],
   );

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
+import { advanceStatus, updateText } from '../lib/library.js';
 
 export default function Chat({ text, onNotify, onReloaded }) {
   const [turns, setTurns] = useState(() => (text.chat ?? []).filter((turn) => !turn.hidden));
@@ -26,19 +27,41 @@ export default function Chat({ text, onNotify, onReloaded }) {
   async function send(message) {
     if (busy) return;
     setBusy(true);
+
+    const history = turns.map(({ role, content }) => ({ role, content }));
     if (message) {
       setTurns((prev) => [...prev, { role: 'user', content: message, at: new Date().toISOString() }]);
       setDraft('');
     }
+
     try {
-      const data = await api.chat(text.id, message);
-      setTurns((prev) => [
-        ...prev,
-        { role: 'assistant', content: data.reply, at: new Date().toISOString() },
-      ]);
+      const data = await api.chat({
+        title: text.title,
+        text: text.paragraphs.join('\n\n'),
+        genre: text.genre?.label ?? '',
+        history,
+        message,
+      });
+
+      const now = new Date().toISOString();
+      const added = [];
+      if (message) added.push({ role: 'user', content: message, at: now });
+      added.push({ role: 'assistant', content: data.reply, at: now });
+
+      setTurns((prev) => [...prev, { role: 'assistant', content: data.reply, at: now }]);
+      updateText(text.id, (item) => {
+        item.chat = [...(item.chat ?? []), ...added];
+        item.lastStep = 'chat';
+        advanceStatus(item, 'quiz_done');
+      });
       onReloaded?.();
     } catch (error) {
       onNotify(error.message);
+      // Реплику, которая не дошла, из переписки убираем — иначе она застрянет без ответа.
+      if (message) {
+        setTurns((prev) => prev.filter((turn, index) => !(index === prev.length - 1 && turn.role === 'user')));
+        setDraft(message);
+      }
     } finally {
       setBusy(false);
     }
@@ -48,7 +71,15 @@ export default function Chat({ text, onNotify, onReloaded }) {
     if (busy) return;
     setBusy(true);
     try {
-      setSummary(await api.chatSummary(text.id));
+      const result = await api.chatSummary({
+        title: text.title,
+        history: turns.map(({ role, content }) => ({ role, content })),
+      });
+      updateText(text.id, (item) => {
+        item.chatSummary = { ...result, at: new Date().toISOString() };
+        advanceStatus(item, 'chat_done');
+      });
+      setSummary(result);
       onReloaded?.();
     } catch (error) {
       onNotify(error.message);

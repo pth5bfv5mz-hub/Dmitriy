@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api } from '../api.js';
+import { advanceStatus, updateText } from '../lib/library.js';
 
 export default function Quiz({ text, onNotify, onReloaded, onNext }) {
   const [answers, setAnswers] = useState(() => text.quizResult?.answers ?? []);
@@ -8,11 +8,31 @@ export default function Quiz({ text, onNotify, onReloaded, onNext }) {
 
   const allAnswered = text.questions.every((_, index) => Number.isInteger(answers[index]));
 
-  async function submit() {
+  // Проверка ответов не требует ИИ: верные варианты уже лежат в тексте.
+  function submit() {
     if (!allAnswered || sending) return;
     setSending(true);
     try {
-      const data = await api.submitQuiz(text.id, answers);
+      const details = text.questions.map((question, index) => ({
+        index,
+        given: answers[index],
+        correctIndex: question.correctIndex,
+        isCorrect: answers[index] === question.correctIndex,
+      }));
+      const data = {
+        answers,
+        details,
+        correct: details.filter((detail) => detail.isCorrect).length,
+        total: text.questions.length,
+        at: new Date().toISOString(),
+      };
+
+      updateText(text.id, (item) => {
+        item.quizResult = data;
+        item.lastStep = 'quiz';
+        advanceStatus(item, 'quiz_done');
+      });
+
       setResult(data);
       onReloaded?.();
       window.scrollTo({ top: 0, behavior: 'smooth' });

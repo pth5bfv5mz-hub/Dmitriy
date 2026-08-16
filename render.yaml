@@ -1,0 +1,19 @@
+# Конфигурация для бесплатного хостинга Render (render.com).
+# Render читает этот файл сам и создаёт сервис с нужными настройками —
+# вручную ничего заполнять не нужно, кроме секретного ключа.
+services:
+  - type: web
+    name: english-reader
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: english-reader
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false # значение вводится в панели Render, в репозиторий не попадает
+      - key: NODE_VERSION
+        value: '22'

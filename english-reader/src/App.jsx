@@ -1,56 +1,44 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from './api.js';
+import * as library from './lib/library.js';
 import Library from './components/Library.jsx';
 import TextWorkspace from './components/TextWorkspace.jsx';
 import Toast from './components/Toast.jsx';
 
 export default function App() {
   const [genres, setGenres] = useState([]);
-  const [texts, setTexts] = useState([]);
+  const [texts, setTexts] = useState(() => library.listTexts());
   const [current, setCurrent] = useState(null);
   const [health, setHealth] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
 
   const notify = useCallback((message, tone = 'error') => setToast({ message, tone }), []);
 
-  const refreshLibrary = useCallback(async () => {
-    try {
-      setTexts(await api.listTexts());
-    } catch (error) {
-      notify(error.message);
-    }
-  }, [notify]);
+  const refreshLibrary = useCallback(() => setTexts(library.listTexts()), []);
 
   useEffect(() => {
     (async () => {
       try {
-        const [genreList, textList, healthInfo] = await Promise.all([
-          api.genres(),
-          api.listTexts(),
-          api.health().catch(() => null),
-        ]);
-        setGenres(genreList);
-        setTexts(textList);
-        setHealth(healthInfo);
+        setGenres(await api.genres());
       } catch (error) {
         notify(error.message);
-      } finally {
-        setLoading(false);
       }
+      setHealth(await api.health().catch(() => null));
     })();
   }, [notify]);
 
   const openText = useCallback(
-    async (id) => {
-      try {
-        setCurrent(await api.getText(id));
-        window.scrollTo({ top: 0 });
-      } catch (error) {
-        notify(error.message);
+    (id) => {
+      const text = library.getText(id);
+      if (!text) {
+        notify('Текст не найден — возможно, он был удалён.');
+        refreshLibrary();
+        return;
       }
+      setCurrent(text);
+      window.scrollTo({ top: 0 });
     },
-    [notify],
+    [notify, refreshLibrary],
   );
 
   const closeText = useCallback(() => {
@@ -78,15 +66,13 @@ export default function App() {
 
       {health && !health.hasKey && (
         <div className="banner">
-          Не задан <code>ANTHROPIC_API_KEY</code>. Скопируйте <code>.env.example</code> в{' '}
-          <code>.env</code>, впишите ключ и перезапустите <code>npm run dev</code>.
+          На сервере не задан ключ <code>ANTHROPIC_API_KEY</code> — генерация текстов пока не
+          работает. Добавьте ключ в настройках хостинга и перезапустите сервис.
         </div>
       )}
 
       <main>
-        {loading ? (
-          <div className="center muted">Загрузка…</div>
-        ) : current ? (
+        {current ? (
           <TextWorkspace
             key={current.id}
             text={current}

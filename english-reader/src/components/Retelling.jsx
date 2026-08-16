@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api.js';
+import { advanceStatus, updateText } from '../lib/library.js';
 
 export default function Retelling({ text, onNotify, onReloaded, onNext }) {
   const [draft, setDraft] = useState(text.retelling?.text ?? '');
@@ -12,8 +13,17 @@ export default function Retelling({ text, onNotify, onReloaded, onNext }) {
     if (sending || words < 10) return;
     setSending(true);
     try {
-      const record = await api.checkRetelling(text.id, draft);
-      setFeedback(record.feedback);
+      const result = await api.checkRetelling({
+        title: text.title,
+        text: text.paragraphs.join('\n\n'),
+        retelling: draft,
+      });
+      updateText(text.id, (item) => {
+        item.retelling = { text: draft, feedback: result, at: new Date().toISOString() };
+        item.lastStep = 'retell';
+        advanceStatus(item, 'quiz_done');
+      });
+      setFeedback(result);
       onReloaded?.();
     } catch (error) {
       onNotify(error.message);

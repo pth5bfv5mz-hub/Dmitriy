@@ -1,10 +1,7 @@
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api.js';
+import { advanceStatus, glossaryKey, updateText } from '../lib/library.js';
 import { splitSentences, tokenize } from '../lib/text.js';
-
-/** Ключ должен совпадать с серверным, чтобы переиспользовать кэш переводов. */
-const glossaryKey = (word, sentence) =>
-  `${word.toLowerCase()}::${sentence.slice(0, 60).toLowerCase()}`;
 
 export default function Reader({ text, onNotify, onReloaded, onNext }) {
   const [cache, setCache] = useState(() => ({ ...(text.glossary ?? {}) }));
@@ -18,7 +15,15 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
   );
 
   const paragraphs = useMemo(
-    () => text.paragraphs.map((paragraph) => splitSentences(paragraph).map((sentence) => ({ sentence, tokens: tokenize(sentence) }))),
+    () =>
+      text.paragraphs.map((paragraph) =>
+        splitSentences(paragraph).map((sentence) => ({
+          sentence,
+          // Для контекста перевода нужен текст без концевых пробелов.
+          context: sentence.trim(),
+          tokens: tokenize(sentence),
+        })),
+      ),
     [text.paragraphs],
   );
 
@@ -44,7 +49,8 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
     };
   }, [close]);
 
-  async function lookup(event, word, sentence) {
+  async function lookup(event, word, rawSentence) {
+    const sentence = rawSentence.trim();
     const key = glossaryKey(word, sentence);
     const rect = event.currentTarget.getBoundingClientRect();
     setPopup({ key, word, rect });
@@ -53,8 +59,19 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
 
     setLoadingKey(key);
     try {
-      const entry = await api.translate(text.id, { word, sentence });
+      const entry = await api.translateWord({
+        word,
+        sentence,
+        title: text.title,
+        genre: text.genre?.label ?? '',
+      });
       setCache((prev) => ({ ...prev, [key]: entry }));
+      // Слово сохраняется в библиотеке, чтобы не переводить его повторно.
+      updateText(text.id, (item) => {
+        item.glossary ??= {};
+        item.glossary[key] = entry;
+        advanceStatus(item, 'reading');
+      });
       onReloaded?.();
     } catch (error) {
       onNotify(error.message);
@@ -82,13 +99,13 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
       <div className="prose">
         {paragraphs.map((sentences, pIndex) => (
           <p key={pIndex}>
-            {sentences.map(({ sentence, tokens }, sIndex) =>
+            {sentences.map(({ context, tokens }, sIndex) =>
               tokens.map((token, tIndex) => {
                 const tokenKey = `${pIndex}-${sIndex}-${tIndex}`;
                 if (token.type === 'plain' || !token.clickable) {
                   return <span key={tokenKey}>{token.value}</span>;
                 }
-                const key = glossaryKey(token.value, sentence);
+                const key = glossaryKey(token.value, context);
                 const isSeen = seenWords.has(token.value.toLowerCase()) || Boolean(cache[key]);
                 return (
                   <span
@@ -96,8 +113,8 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
                     className={`word ${isSeen ? 'seen' : ''} ${popup?.key === key ? 'active' : ''}`}
                     role="button"
                     tabIndex={0}
-                    onClick={(event) => lookup(event, token.value, sentence)}
-                    onKeyDown={(event) => event.key === 'Enter' && lookup(event, token.value, sentence)}
+                    onClick={(event) => lookup(event, token.value, context)}
+                    onKeyDown={(event) => event.key === 'Enter' && lookup(event, token.value, context)}
                   >
                     {token.value}
                   </span>

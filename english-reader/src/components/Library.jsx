@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { api } from '../api.js';
+import * as library from '../lib/library.js';
 import { STATUS_LABELS, formatDate } from '../lib/text.js';
 
 const SURPRISE = { id: 'surprise', label: 'Удиви меня', emoji: '🎲', description: 'Жанр и тему выберет ИИ' };
@@ -30,9 +31,10 @@ export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) 
     if (creating) return;
     setCreating(true);
     try {
-      const text = await api.createText({ genre: genreId, topic });
+      const generated = await api.generate({ genre: genreId, topic });
+      const text = library.createText(generated);
       setTopic('');
-      await onRefresh();
+      onRefresh();
       onOpen(text.id);
     } catch (error) {
       onNotify(error.message);
@@ -45,7 +47,7 @@ export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) 
     event.stopPropagation();
     if (!window.confirm('Удалить текст вместе с прогрессом?')) return;
     try {
-      await api.deleteText(id);
+      library.removeText(id);
       onRefresh();
     } catch (error) {
       onNotify(error.message);

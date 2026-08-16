@@ -1,8 +1,19 @@
-async function request(url, options = {}) {
-  const response = await fetch(url, {
-    headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
-    ...options,
-  });
+/**
+ * Обращения к серверу. Сервер сам ничего не хранит — он только
+ * посредник между браузером и Anthropic API.
+ */
+
+async function request(url, body) {
+  let response;
+  try {
+    response = await fetch(url, {
+      method: body === undefined ? 'GET' : 'POST',
+      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    throw new Error('Нет связи с сервером. Проверьте интернет и обновите страницу.');
+  }
 
   let payload = null;
   try {
@@ -17,23 +28,20 @@ async function request(url, options = {}) {
   return payload;
 }
 
-const json = (body) => ({ method: 'POST', body: JSON.stringify(body) });
-
 export const api = {
   health: () => request('/api/health'),
   genres: () => request('/api/genres'),
 
-  listTexts: () => request('/api/texts'),
-  getText: (id) => request(`/api/texts/${id}`),
-  createText: (body) => request('/api/texts', json(body)),
-  deleteText: (id) => request(`/api/texts/${id}`, { method: 'DELETE' }),
+  generate: ({ genre, topic }) => request('/api/generate', { genre, topic }),
 
-  saveProgress: (id, body) =>
-    request(`/api/texts/${id}/progress`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+  translateWord: ({ word, sentence, title, genre }) =>
+    request('/api/word', { word, sentence, title, genre }),
 
-  translate: (id, body) => request(`/api/texts/${id}/word`, json(body)),
-  submitQuiz: (id, answers) => request(`/api/texts/${id}/quiz`, json({ answers })),
-  checkRetelling: (id, retelling) => request(`/api/texts/${id}/retelling`, json({ retelling })),
-  chat: (id, message) => request(`/api/texts/${id}/chat`, json({ message })),
-  chatSummary: (id) => request(`/api/texts/${id}/chat/summary`, json({})),
+  checkRetelling: ({ title, text, retelling }) =>
+    request('/api/retelling', { title, text, retelling }),
+
+  chat: ({ title, text, genre, history, message }) =>
+    request('/api/chat', { title, text, genre, history, message }),
+
+  chatSummary: ({ title, history }) => request('/api/chat/summary', { title, history }),
 };
