@@ -1,0 +1,21 @@
+{
+  "name": "vocab-trainer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:pages": "vite build --outDir docs --emptyOutDir && node -e \"require('fs').writeFileSync('docs/.nojekyll','')\"",
+    "test": "node scripts/selftest.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11"
+  }
+}
