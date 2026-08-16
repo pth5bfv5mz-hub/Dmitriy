@@ -80,6 +80,16 @@ function normalizeGenerated(data) {
   return { title, paragraphs, questions };
 }
 
+/** Нижняя граница объёма: короче — текст ощущается обрывком, а не историей. */
+const MIN_WORDS = 280;
+
+const countWords = (paragraphs) =>
+  paragraphs
+    .join(' ')
+    .replace(/\*\*/g, '')
+    .split(/\s+/)
+    .filter(Boolean).length;
+
 app.post('/api/generate', route(async (req, res) => {
   const { genre: genreId, topic } = req.body ?? {};
   if (genreId && genreId !== 'surprise' && !getGenre(genreId)) {
@@ -87,9 +97,31 @@ app.post('/api/generate', route(async (req, res) => {
   }
 
   const { genre, topic: resolvedTopic, topicWasRandom } = resolveRequest({ genre: genreId, topic });
-  const generated = normalizeGenerated(
-    await askJson({ ...textPrompt({ genre, topic: resolvedTopic }), maxTokens: 3000, effort: 'high' }),
-  );
+  const prompt = textPrompt({ genre, topic: resolvedTopic });
+
+  let generated = normalizeGenerated(await askJson({ ...prompt, maxTokens: 3500, effort: 'high' }));
+
+  // Модель иногда экономит на объёме. Одна автоматическая переписка с указанием,
+  // насколько текст оказался коротким; если и она не помогла — отдаём что есть.
+  const words = countWords(generated.paragraphs);
+  if (words < MIN_WORDS) {
+    const [firstMessage] = prompt.messages;
+    const retry = await askJson({
+      system: prompt.system,
+      messages: [
+        {
+          role: 'user',
+          content: `${firstMessage.content}
+
+IMPORTANT: a previous attempt came out at only ${words} words, which is too short. This time write 300-380 words across 4-5 full paragraphs of 65-95 words each. Develop the scene properly instead of summarising it.`,
+        },
+      ],
+      maxTokens: 3500,
+      effort: 'high',
+    });
+    const retryGenerated = normalizeGenerated(retry);
+    if (countWords(retryGenerated.paragraphs) > words) generated = retryGenerated;
+  }
 
   res.json({
     ...generated,

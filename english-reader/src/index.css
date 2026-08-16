@@ -502,6 +502,11 @@ textarea:focus,
   margin: 0 0 1.15em;
 }
 
+/* Жирным модель выделяет фразу-крючок в начале и главную мысль в конце. */
+.prose .em {
+  font-weight: 700;
+}
+
 .word {
   cursor: pointer;
   border-radius: 3px;

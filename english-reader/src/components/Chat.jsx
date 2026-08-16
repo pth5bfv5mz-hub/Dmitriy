@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
 import { advanceStatus, updateText } from '../lib/library.js';
+import { stripEmphasis } from '../lib/text.js';
 
 export default function Chat({ text, onNotify, onReloaded }) {
   const [turns, setTurns] = useState(() => (text.chat ?? []).filter((turn) => !turn.hidden));
@@ -37,7 +38,7 @@ export default function Chat({ text, onNotify, onReloaded }) {
     try {
       const data = await api.chat({
         title: text.title,
-        text: text.paragraphs.join('\n\n'),
+        text: stripEmphasis(text.paragraphs.join('\n\n')),
         genre: text.genre?.label ?? '',
         history,
         message,

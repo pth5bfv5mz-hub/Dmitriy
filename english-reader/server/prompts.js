@@ -14,12 +14,22 @@ const B1_RULES = `LANGUAGE LEVEL — CEFR B1, strictly:
 - No idioms a B1 learner would not meet in a textbook, no rare phrasal verbs, no wordplay that depends on native intuition.
 - Natural, living English — simple is not the same as flat or childish.`;
 
-const CRAFT_RULES = `WRITING CRAFT (short form, 200–350 words):
+const CRAFT_RULES = `LENGTH — this is a hard requirement:
+- 300 to 380 words in total. A text under 300 words is a failure, however good it is.
+- 4 to 5 paragraphs, each a real paragraph of 65–95 words — roughly 4–7 sentences. Never a one-line paragraph.
+- Count as you write. If you reach the end and the text is short, do not stop: develop a scene further, add a second concrete detail, let a character speak.
+
+WRITING CRAFT:
 - One episode, one place, one turn. Do not summarise a whole life.
 - Concrete details instead of abstractions: an object, a sound, a gesture, the weather.
 - Show, do not explain. Never state the moral of the story in plain words.
 - Every sentence earns its place. Cut anything that only repeats what the reader already knows.
-- The last line should give the reader something to keep: a turn, an image, or a thought that re-frames the beginning.`;
+- The last line should give the reader something to keep: a turn, an image, or a thought that re-frames the beginning.
+
+EMPHASIS:
+- Wrap the opening hook (the first sentence or question) in **double asterisks**.
+- Wrap the closing thought (the last sentence, or the last two) in **double asterisks**.
+- You may emphasise at most one more key phrase in the middle. Nothing else — emphasis stops working when it is everywhere.`;
 
 export function textPrompt({ genre, topic }) {
   return {
@@ -49,7 +59,8 @@ Answer with JSON only, no preamble, no markdown fences:
   ]
 }
 
-Rules for the JSON: 4 to 6 paragraphs, 200-350 words in total, exactly 4 questions, exactly 4 options each, correctIndex is 0-based, explanation is in Russian.`,
+Rules for the JSON: 4 to 5 paragraphs, 300-380 words in total (count them), exactly 4 questions, exactly 4 options each, correctIndex is 0-based, explanation is in Russian.
+Keep the **emphasis** markers inside the paragraph strings — they are rendered as bold text.`,
     messages: [
       {
         role: 'user',

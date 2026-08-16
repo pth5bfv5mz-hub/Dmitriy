@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api.js';
 import { advanceStatus, glossaryKey, updateText } from '../lib/library.js';
-import { splitSentences, tokenize } from '../lib/text.js';
+import { splitSentences, stripEmphasis, tokenize, words } from '../lib/text.js';
 
 export default function Reader({ text, onNotify, onReloaded, onNext }) {
   const [cache, setCache] = useState(() => ({ ...(text.glossary ?? {}) }));
@@ -19,8 +19,8 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
       text.paragraphs.map((paragraph) =>
         splitSentences(paragraph).map((sentence) => ({
           sentence,
-          // Для контекста перевода нужен текст без концевых пробелов.
-          context: sentence.trim(),
+          // Для контекста перевода нужен чистый текст: без звёздочек и пробелов по краям.
+          context: stripEmphasis(sentence).trim(),
           tokens: tokenize(sentence),
         })),
       ),
@@ -89,7 +89,7 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
         <div className="reader-genre">
           <span className="genre-emoji big">{text.genre?.emoji ?? '📖'}</span>
           <span className="muted small">
-            {text.genre?.label} · {text.paragraphs.join(' ').split(/\s+/).length} слов
+            {text.genre?.label} · {words(stripEmphasis(text.paragraphs.join(' ')).split(/\s+/).filter(Boolean).length)}
           </span>
         </div>
         <h1 className="reader-title">{text.title}</h1>
@@ -103,14 +103,18 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
               tokens.map((token, tIndex) => {
                 const tokenKey = `${pIndex}-${sIndex}-${tIndex}`;
                 if (token.type === 'plain' || !token.clickable) {
-                  return <span key={tokenKey}>{token.value}</span>;
+                  return (
+                    <span key={tokenKey} className={token.bold ? 'em' : undefined}>
+                      {token.value}
+                    </span>
+                  );
                 }
                 const key = glossaryKey(token.value, context);
                 const isSeen = seenWords.has(token.value.toLowerCase()) || Boolean(cache[key]);
                 return (
                   <span
                     key={tokenKey}
-                    className={`word ${isSeen ? 'seen' : ''} ${popup?.key === key ? 'active' : ''}`}
+                    className={`word ${token.bold ? 'em' : ''} ${isSeen ? 'seen' : ''} ${popup?.key === key ? 'active' : ''}`}
                     role="button"
                     tabIndex={0}
                     onClick={(event) => lookup(event, token.value, context)}

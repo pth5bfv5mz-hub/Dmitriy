@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api.js';
 import { advanceStatus, updateText } from '../lib/library.js';
+import { stripEmphasis } from '../lib/text.js';
 
 export default function Retelling({ text, onNotify, onReloaded, onNext }) {
   const [draft, setDraft] = useState(text.retelling?.text ?? '');
@@ -15,7 +16,7 @@ export default function Retelling({ text, onNotify, onReloaded, onNext }) {
     try {
       const result = await api.checkRetelling({
         title: text.title,
-        text: text.paragraphs.join('\n\n'),
+        text: stripEmphasis(text.paragraphs.join('\n\n')),
         retelling: draft,
       });
       updateText(text.id, (item) => {

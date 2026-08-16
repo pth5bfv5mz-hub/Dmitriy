@@ -46,7 +46,7 @@ export function listTexts() {
       status: text.status ?? 'new',
       lastStep: text.lastStep ?? 'read',
       createdAt: text.createdAt,
-      wordCount: (text.paragraphs ?? []).join(' ').split(/\s+/).filter(Boolean).length,
+      wordCount: (text.paragraphs ?? []).join(' ').replace(/\*\*/g, '').split(/\s+/).filter(Boolean).length,
       lookedUpWords: Object.keys(text.glossary ?? {}).length,
       quiz: text.quizResult
         ? { correct: text.quizResult.correct, total: text.quizResult.total }

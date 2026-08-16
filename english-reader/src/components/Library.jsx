@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { api } from '../api.js';
 import * as library from '../lib/library.js';
-import { STATUS_LABELS, formatDate } from '../lib/text.js';
+import { STATUS_LABELS, formatDate, words } from '../lib/text.js';
 
 const SURPRISE = { id: 'surprise', label: 'Удиви меня', emoji: '🎲', description: 'Жанр и тему выберет ИИ' };
 
@@ -59,7 +59,7 @@ export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) 
       <section className="generator card">
         <h1>Новый текст</h1>
         <p className="muted">
-          Короткая история или эссе на 200–350 слов, уровень B1: со словарём по клику, тестом,
+          Короткая история или эссе на 300–380 слов, уровень B1: со словарём по клику, тестом,
           пересказом и разговором.
         </p>
 
@@ -170,7 +170,7 @@ export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) 
                     <span className="text-card-body">
                       <span className="text-card-title">{text.title}</span>
                       <span className="muted small">
-                        {text.genre?.label ?? '—'} · {text.wordCount} слов · {formatDate(text.createdAt)}
+                        {text.genre?.label ?? '—'} · {words(text.wordCount)} · {formatDate(text.createdAt)}
                       </span>
                       <span className="text-card-meta">
                         <span className={`badge ${status.tone}`}>{status.label}</span>
@@ -180,7 +180,7 @@ export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) 
                           </span>
                         )}
                         {text.lookedUpWords > 0 && (
-                          <span className="badge quiet">слов: {text.lookedUpWords}</span>
+                          <span className="badge quiet">в словаре: {text.lookedUpWords}</span>
                         )}
                       </span>
                     </span>

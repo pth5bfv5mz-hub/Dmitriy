@@ -31,30 +31,44 @@ export function splitSentences(paragraph) {
 
 /**
  * Разбивает предложение на токены для рендера.
- * { type: 'word' | 'plain', value, clickable, key }
+ * { type: 'word' | 'plain', value, clickable, bold }
+ *
+ * Пары ** включают и выключают жирное начертание (так модель выделяет
+ * фразу-крючок в начале и главную мысль в конце). Сами звёздочки на экран
+ * не попадают.
  */
 export function tokenize(sentence) {
   const tokens = [];
-  let lastIndex = 0;
+  let bold = false;
 
-  for (const match of sentence.matchAll(WORD_PATTERN)) {
-    if (match.index > lastIndex) {
-      tokens.push({ type: 'plain', value: sentence.slice(lastIndex, match.index) });
+  for (const chunk of sentence.split('**')) {
+    let lastIndex = 0;
+
+    for (const match of chunk.matchAll(WORD_PATTERN)) {
+      if (match.index > lastIndex) {
+        tokens.push({ type: 'plain', value: chunk.slice(lastIndex, match.index), bold });
+      }
+      const value = match[0];
+      tokens.push({
+        type: 'word',
+        value,
+        bold,
+        clickable: !FUNCTION_WORDS.has(value.toLowerCase().replace(/['’]/g, '')) && value.length > 1,
+      });
+      lastIndex = match.index + value.length;
     }
-    const value = match[0];
-    tokens.push({
-      type: 'word',
-      value,
-      clickable: !FUNCTION_WORDS.has(value.toLowerCase().replace(/['’]/g, '')) && value.length > 1,
-    });
-    lastIndex = match.index + value.length;
+
+    if (lastIndex < chunk.length) {
+      tokens.push({ type: 'plain', value: chunk.slice(lastIndex), bold });
+    }
+    bold = !bold;
   }
 
-  if (lastIndex < sentence.length) {
-    tokens.push({ type: 'plain', value: sentence.slice(lastIndex) });
-  }
   return tokens;
 }
+
+/** Текст без служебных звёздочек — для контекста перевода и подсчёта слов. */
+export const stripEmphasis = (text) => text.replace(/\*\*/g, '');
 
 export function normalizeWord(word) {
   return word.toLowerCase().replace(/['’]/g, "'");
@@ -66,6 +80,18 @@ export const STATUS_LABELS = {
   quiz_done: { label: 'тест пройден', tone: 'good' },
   chat_done: { label: 'диалог завершён', tone: 'done' },
 };
+
+/** Склонение существительного после числа: 1 слово, 2 слова, 5 слов. */
+export function plural(count, [one, few, many]) {
+  const mod100 = count % 100;
+  if (mod100 >= 11 && mod100 <= 14) return many;
+  const mod10 = count % 10;
+  if (mod10 === 1) return one;
+  if (mod10 >= 2 && mod10 <= 4) return few;
+  return many;
+}
+
+export const words = (count) => `${count} ${plural(count, ['слово', 'слова', 'слов'])}`;
 
 export function formatDate(iso) {
   return new Date(iso).toLocaleDateString('ru-RU', {
