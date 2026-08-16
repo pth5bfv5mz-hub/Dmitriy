@@ -6,7 +6,11 @@ SPA на Vite + React с интервальными повторениями п�
 
 ## Как открыть на телефоне
 
-Собранная версия лежит в `vocab-trainer/docs` — это готовый сайт для GitHub Pages.
+Собранная версия лежит в папке `docs` **в корне репозитория** — это готовый сайт
+для GitHub Pages. Именно в корне, потому что Pages в режиме «Deploy from a branch»
+умеет отдавать только корень репозитория или папку `/docs` верхнего уровня;
+вложенные пути вроде `vocab-trainer/docs` он не предлагает.
+
 Включается один раз в настройках репозитория:
 
 **Settings → Pages → Source: «Deploy from a branch» → Branch:
@@ -20,7 +24,8 @@ SPA на Vite + React с интервальными повторениями п�
 
 ```bash
 cd vocab-trainer
-npm run build:pages   # пересобирает docs/
+npm run build:pages   # пересобирает docs/ в корне репозитория
+cd ..
 git add docs && git commit -m "Обновить сборку" && git push
 ```
 
