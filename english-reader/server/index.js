@@ -77,7 +77,12 @@ function normalizeGenerated(data) {
   if (!title || paragraphs.length < 2 || questions.length === 0) {
     throw new ApiError(502, 'Модель вернула текст в неожиданном формате. Попробуйте ещё раз.');
   }
-  return { title, paragraphs, questions };
+
+  // Описание картинки необязательно: без него текст просто покажется без иллюстрации.
+  const imagePrompt =
+    typeof data?.imagePrompt === 'string' ? data.imagePrompt.trim().slice(0, 300) : '';
+
+  return { title, paragraphs, questions, imagePrompt };
 }
 
 /** Нижняя граница объёма: короче — текст ощущается обрывком, а не историей. */
@@ -128,6 +133,7 @@ IMPORTANT: a previous attempt came out at only ${words} words, which is too shor
     topic: resolvedTopic,
     topicWasRandom,
     genre: { id: genre.id, label: genre.label, emoji: genre.emoji },
+    imageStyle: genre.imageStyle ?? '',
   });
 }));
 

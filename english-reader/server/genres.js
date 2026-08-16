@@ -11,6 +11,7 @@
 export const GENRES = [
   {
     id: 'motivation',
+    imageStyle: 'warm editorial photography, soft daylight, quiet everyday scene',
     label: 'Мотивация',
     emoji: '🌱',
     description: 'Короткое эссе о жизни и привычках — как посты @english.read',
@@ -29,6 +30,7 @@ export const GENRES = [
   },
   {
     id: 'life',
+    imageStyle: 'candid documentary photography, natural light, ordinary domestic detail',
     label: 'Из жизни',
     emoji: '☕',
     description: 'Бытовая история: переезд, отношения, работа, семья',
@@ -46,6 +48,7 @@ export const GENRES = [
   },
   {
     id: 'horror',
+    imageStyle: 'moody cinematic film photograph, deep shadows, cold light, unsettling emptiness',
     label: 'Ужастик',
     emoji: '🕯️',
     description: 'Короткий крипи-рассказ с финалом, от которого мурашки',
@@ -64,6 +67,7 @@ export const GENRES = [
   },
   {
     id: 'thriller',
+    imageStyle: 'tense cinematic still, high contrast, night city light, sense of motion',
     label: 'Триллер',
     emoji: '⏱️',
     description: 'Саспенс: время идёт, что-то вот-вот случится',
@@ -82,6 +86,7 @@ export const GENRES = [
   },
   {
     id: 'mystery',
+    imageStyle: 'noir photograph, desk lamp light, rain on glass, muted colours',
     label: 'Детектив',
     emoji: '🔎',
     description: 'Мини-загадка с разгадкой в конце',
@@ -100,6 +105,7 @@ export const GENRES = [
   },
   {
     id: 'science',
+    imageStyle: 'clean scientific illustration, minimal, elegant diagrammatic style',
     label: 'Научпоп',
     emoji: '🔬',
     description: 'Одно любопытное явление или эксперимент — понятным языком',
@@ -119,6 +125,7 @@ export const GENRES = [
   },
   {
     id: 'scifi',
+    imageStyle: 'near-future concept art, restrained palette, believable everyday technology',
     label: 'Фантастика',
     emoji: '🛰️',
     description: 'Одна идея «а что если» — близкое будущее',
@@ -136,6 +143,7 @@ export const GENRES = [
   },
   {
     id: 'weird',
+    imageStyle: 'surreal photograph, dreamlike but calm, one impossible detail',
     label: 'Странное',
     emoji: '🌀',
     description: 'Магический реализм: обычный мир с одной странностью',

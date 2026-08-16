@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { api } from '../api.js';
 import * as library from '../lib/library.js';
+import { imagesEnabled, setImagesEnabled } from '../lib/image.js';
 import { STATUS_LABELS, formatDate, words } from '../lib/text.js';
 
 const SURPRISE = { id: 'surprise', label: 'Удиви меня', emoji: '🎲', description: 'Жанр и тему выберет ИИ' };
@@ -11,6 +12,7 @@ export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) 
   const [creating, setCreating] = useState(false);
   const [filter, setFilter] = useState('all');
   const [query, setQuery] = useState('');
+  const [withImages, setWithImages] = useState(imagesEnabled);
 
   const selected = genres.find((genre) => genre.id === genreId) ?? SURPRISE;
   const options = [SURPRISE, ...genres];
@@ -90,6 +92,19 @@ export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) 
             {creating ? 'Пишу…' : 'Новый текст'}
           </button>
         </form>
+
+        <label className="switch">
+          <input
+            type="checkbox"
+            checked={withImages}
+            onChange={(event) => {
+              setWithImages(event.target.checked);
+              setImagesEnabled(event.target.checked);
+            }}
+          />
+          <span>Иллюстрация к тексту</span>
+          <span className="muted small">рисует бесплатный сервис, картинка появляется при чтении</span>
+        </label>
 
         {selected.topics?.length > 0 && (
           <div className="suggestions">

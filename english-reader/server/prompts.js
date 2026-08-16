@@ -45,9 +45,12 @@ ${genre.craft}
 You also write comprehension questions about the text: 4 multiple-choice questions, 4 options each, exactly one correct.
 Questions must be answerable from the text alone. At least one question should be about meaning, intention or implication — not only about facts on the surface. Wrong options must be plausible, not silly.
 
+You also describe one image for the text. It is drawn by an image model that has not read the story, so the description must stand alone: name what is in the frame, the light and the mood. 12-25 words, English, no names of characters, no letters or writing in the picture, no spoilers of the final turn.
+
 Answer with JSON only, no preamble, no markdown fences:
 {
   "title": "short, intriguing title (2-6 words, no spoilers)",
+  "imagePrompt": "what the picture shows: subject, setting, light, mood",
   "paragraphs": ["paragraph 1", "paragraph 2", "..."],
   "questions": [
     {

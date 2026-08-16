@@ -1,11 +1,13 @@
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api.js';
 import { advanceStatus, glossaryKey, updateText } from '../lib/library.js';
+import { imageUrl, imagesEnabled } from '../lib/image.js';
 import { splitSentences, stripEmphasis, tokenize, words } from '../lib/text.js';
 
 export default function Reader({ text, onNotify, onReloaded, onNext }) {
   const [cache, setCache] = useState(() => ({ ...(text.glossary ?? {}) }));
-  const [popup, setPopup] = useState(null); // { key, word, rect }
+  const [popup, setPopup] = useState(null); // { key, word, el }
+  const [rect, setRect] = useState(null);
   const [loadingKey, setLoadingKey] = useState(null);
   const popupRef = useRef(null);
 
@@ -27,6 +29,11 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
     [text.paragraphs],
   );
 
+  // Иллюстрация рисуется внешним сервисом: пока грузится — заглушка,
+  // если не ответил — блок просто исчезает, чтение это не задевает.
+  const illustration = imagesEnabled() ? imageUrl(text) : null;
+  const [imageState, setImageState] = useState('loading');
+
   const close = useCallback(() => setPopup(null), []);
 
   useEffect(() => {
@@ -40,20 +47,31 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
     }
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onClickOutside);
-    // Позиция подсказки привязана к экрану, поэтому при прокрутке её проще закрыть.
-    window.addEventListener('scroll', close, { passive: true });
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('mousedown', onClickOutside);
-      window.removeEventListener('scroll', close);
     };
   }, [close]);
+
+  // Подсказка держится за само слово: при прокрутке или сдвиге вёрстки
+  // (например, когда иллюстрация догрузилась) она едет вместе с ним.
+  useEffect(() => {
+    if (!popup?.el) return undefined;
+
+    const update = () => setRect(popup.el.getBoundingClientRect());
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [popup]);
 
   async function lookup(event, word, rawSentence) {
     const sentence = rawSentence.trim();
     const key = glossaryKey(word, sentence);
-    const rect = event.currentTarget.getBoundingClientRect();
-    setPopup({ key, word, rect });
+    setPopup({ key, word, el: event.currentTarget });
 
     if (cache[key]) return;
 
@@ -85,6 +103,20 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
 
   return (
     <article className="reader">
+      {illustration && imageState !== 'failed' && (
+        <figure className={`illustration ${imageState}`}>
+          {imageState === 'loading' && (
+            <div className="illustration-placeholder pulse">Рисую иллюстрацию…</div>
+          )}
+          <img
+            src={illustration}
+            alt={text.imagePrompt || text.title}
+            onLoad={() => setImageState('ready')}
+            onError={() => setImageState('failed')}
+          />
+        </figure>
+      )}
+
       <header className="reader-head">
         <div className="reader-genre">
           <span className="genre-emoji big">{text.genre?.emoji ?? '📖'}</span>
@@ -129,10 +161,10 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
         ))}
       </div>
 
-      {popup && (
+      {popup && rect && (
         <WordPopup
           ref={popupRef}
-          rect={popup.rect}
+          rect={rect}
           word={popup.word}
           entry={cache[popup.key]}
           loading={loadingKey === popup.key}
