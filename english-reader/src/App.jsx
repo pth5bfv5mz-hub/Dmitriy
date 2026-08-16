@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api } from './api.js';
+import { api, getMode } from './api.js';
+import { getKey } from './lib/anthropic.js';
 import * as library from './lib/library.js';
+import KeyGate from './components/KeyGate.jsx';
 import Library from './components/Library.jsx';
 import TextWorkspace from './components/TextWorkspace.jsx';
 import Toast from './components/Toast.jsx';
@@ -9,21 +11,24 @@ export default function App() {
   const [genres, setGenres] = useState([]);
   const [texts, setTexts] = useState(() => library.listTexts());
   const [current, setCurrent] = useState(null);
-  const [health, setHealth] = useState(null);
+  const [mode, setMode] = useState(null); // 'server' | 'direct'
+  const [hasKey, setHasKey] = useState(() => Boolean(getKey()));
+  const [showKeyGate, setShowKeyGate] = useState(false);
   const [toast, setToast] = useState(null);
 
   const notify = useCallback((message, tone = 'error') => setToast({ message, tone }), []);
-
   const refreshLibrary = useCallback(() => setTexts(library.listTexts()), []);
 
   useEffect(() => {
     (async () => {
+      const detected = await getMode();
+      setMode(detected);
+      setHasKey(detected === 'direct' ? Boolean(getKey()) : Boolean((await api.health().catch(() => null))?.hasKey));
       try {
         setGenres(await api.genres());
       } catch (error) {
         notify(error.message);
       }
-      setHealth(await api.health().catch(() => null));
     })();
   }, [notify]);
 
@@ -46,6 +51,14 @@ export default function App() {
     refreshLibrary();
   }, [refreshLibrary]);
 
+  // В режиме без сервера без ключа делать нечего — сразу показываем его ввод.
+  const needsKey = mode === 'direct' && !hasKey;
+
+  function keySaved() {
+    setHasKey(Boolean(getKey()));
+    setShowKeyGate(false);
+  }
+
   return (
     <div className="app">
       <header className="topbar">
@@ -59,20 +72,29 @@ export default function App() {
               ← Библиотека
             </button>
           ) : (
-            <span className="muted small">{texts.length} текстов · уровень B1</span>
+            <>
+              <span className="muted small">{texts.length} текстов · B1</span>
+              {mode === 'direct' && (
+                <button className="btn ghost small-btn" onClick={() => setShowKeyGate(true)}>
+                  Ключ
+                </button>
+              )}
+            </>
           )}
         </div>
       </header>
 
-      {health && !health.hasKey && (
+      {mode === 'server' && !hasKey && (
         <div className="banner">
           На сервере не задан ключ <code>ANTHROPIC_API_KEY</code> — генерация текстов пока не
-          работает. Добавьте ключ в настройках хостинга и перезапустите сервис.
+          работает.
         </div>
       )}
 
       <main>
-        {current ? (
+        {needsKey || showKeyGate ? (
+          <KeyGate onSaved={keySaved} onCancel={showKeyGate && hasKey ? () => setShowKeyGate(false) : null} />
+        ) : current ? (
           <TextWorkspace
             key={current.id}
             text={current}

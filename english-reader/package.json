@@ -12,6 +12,7 @@
     "dev:client": "vite",
     "start": "node server/index.js",
     "build": "vite build",
+    "build:pages": "vite build --outDir ../docs --emptyOutDir",
     "preview": "vite preview"
   },
   "dependencies": {

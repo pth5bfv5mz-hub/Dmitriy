@@ -5,14 +5,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { ApiError, ask, askJson, MODEL } from './claude.js';
-import { GENRES, getGenre, resolveRequest } from './genres.js';
+import { GENRES, getGenre, resolveRequest } from '../shared/genres.js';
 import {
   chatSummaryPrompt,
   chatSystemPrompt,
   retellingPrompt,
   textPrompt,
   wordPrompt,
-} from './prompts.js';
+} from '../shared/prompts.js';
 
 /**
  * Сервер без состояния: он только ходит в Anthropic API и отдаёт фронтенд.

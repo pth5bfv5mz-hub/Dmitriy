@@ -1,9 +1,37 @@
+import { directApi } from './lib/direct.js';
+
 /**
- * Обращения к серверу. Сервер сам ничего не хранит — он только
- * посредник между браузером и Anthropic API.
+ * Приложение работает в двух режимах:
+ *
+ * 1. «Сервер» — рядом есть наш Express (локальный запуск или хостинг вроде
+ *    Render). Ключ лежит на сервере, браузер о нём не знает.
+ * 2. «Напрямую» — сайт лежит на статическом хостинге (GitHub Pages), сервера
+ *    нет. Ключ хранится в браузере и уходит прямо в Anthropic.
+ *
+ * Режим определяется один раз: если /api/health не отвечает — значит второй.
  */
 
-async function request(url, body) {
+let modePromise = null;
+
+async function detectMode() {
+  try {
+    const response = await fetch('api/health', { headers: { accept: 'application/json' } });
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.ok) return 'server';
+    }
+  } catch {
+    /* сервера нет — работаем напрямую */
+  }
+  return 'direct';
+}
+
+export function getMode() {
+  modePromise ??= detectMode();
+  return modePromise;
+}
+
+async function serverRequest(url, body) {
   let response;
   try {
     response = await fetch(url, {
@@ -28,20 +56,24 @@ async function request(url, body) {
   return payload;
 }
 
+/** Один вызов — либо на сервер, либо напрямую в Anthropic. */
+async function call(name, serverCall, args) {
+  const mode = await getMode();
+  return mode === 'direct' ? directApi[name](args) : serverCall(args);
+}
+
 export const api = {
-  health: () => request('/api/health'),
-  genres: () => request('/api/genres'),
+  health: () => call('health', () => serverRequest('api/health')),
+  genres: () => call('genres', () => serverRequest('api/genres')),
 
-  generate: ({ genre, topic }) => request('/api/generate', { genre, topic }),
+  generate: (args) => call('generate', (body) => serverRequest('api/generate', body), args),
 
-  translateWord: ({ word, sentence, title, genre }) =>
-    request('/api/word', { word, sentence, title, genre }),
+  translateWord: (args) => call('translateWord', (body) => serverRequest('api/word', body), args),
 
-  checkRetelling: ({ title, text, retelling }) =>
-    request('/api/retelling', { title, text, retelling }),
+  checkRetelling: (args) =>
+    call('checkRetelling', (body) => serverRequest('api/retelling', body), args),
 
-  chat: ({ title, text, genre, history, message }) =>
-    request('/api/chat', { title, text, genre, history, message }),
+  chat: (args) => call('chat', (body) => serverRequest('api/chat', body), args),
 
-  chatSummary: ({ title, history }) => request('/api/chat/summary', { title, history }),
+  chatSummary: (args) => call('chatSummary', (body) => serverRequest('api/chat/summary', body), args),
 };

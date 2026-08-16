@@ -901,3 +901,46 @@ textarea {
     width: auto;
   }
 }
+
+/* ------------------------------------------------------- ввод ключа */
+
+.keygate h1 {
+  font-family: var(--reading);
+  font-size: 26px;
+}
+.steps-list {
+  margin: 18px 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  line-height: 1.55;
+}
+.keygate-form {
+  display: flex;
+  gap: 10px;
+  margin: 18px 0 10px;
+}
+.keygate-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-2);
+  padding: 10px 12px;
+  font-family: var(--ui);
+}
+.keygate-error {
+  color: var(--bad);
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.small-btn {
+  padding: 5px 12px;
+  font-size: 14px;
+}
