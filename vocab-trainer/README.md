@@ -4,6 +4,26 @@ SPA на Vite + React с интервальными повторениями п�
 621 слово, весь интерфейс на русском, тёмная тема, mobile-first.
 Работает офлайн и ставится на домашний экран iPhone как отдельное приложение.
 
+## Как открыть на телефоне
+
+Собранная версия лежит в `vocab-trainer/docs` — это готовый сайт для GitHub Pages.
+Включается один раз в настройках репозитория:
+
+**Settings → Pages → Source: «Deploy from a branch» → Branch:
+`claude/english-vocab-leitner-app-7spcoj`, папка `/docs` → Save.**
+
+Через 1-2 минуты приложение будет по адресу
+<https://pth5bfv5mz-hub.github.io/Dmitriy/>. Открыть в Safari на iPhone →
+«Поделиться» → «На экран «Домой»».
+
+После изменений в коде сборку надо обновить:
+
+```bash
+cd vocab-trainer
+npm run build:pages   # пересобирает docs/
+git add docs && git commit -m "Обновить сборку" && git push
+```
+
 ## Запуск
 
 ```bash
