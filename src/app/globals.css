@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+/**
+ * ============================================================================
+ *  ДИЗАЙН-СИСТЕМА
+ * ============================================================================
+ *  Промышленный тёмный графит + один акцент (оранжевый «искра»).
+ *  Акцент используется только для действий: кнопки, цены, ключевые цифры.
+ *  Если акцентом покрасить всё — он перестанет вести к кнопке.
+ * ============================================================================
+ */
+
+@theme {
+  /* Графитовая база */
+  --color-graphite-950: #0b0d0f;
+  --color-graphite-900: #121518;
+  --color-graphite-850: #171b1f;
+  --color-graphite-800: #1e2328;
+  --color-graphite-700: #2b3238;
+  --color-graphite-600: #3d454d;
+  --color-graphite-500: #5a646e;
+  --color-graphite-400: #8b959f;
+  --color-graphite-300: #b6bec6;
+  --color-graphite-200: #d7dce1;
+  --color-graphite-100: #eceef1;
+  --color-graphite-50: #f6f7f9;
+
+  /* Акцент — раскалённый металл */
+  --color-spark-600: #d14a07;
+  --color-spark-500: #f05a0f;
+  --color-spark-400: #ff7a2f;
+  --color-spark-300: #ff9a5c;
+
+  /* Служебные */
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --radius-card: 14px;
+}
+
+/* ---------------------------------------------------------------- базовое */
+
+html {
+  scroll-behavior: smooth;
+  /* Отступ, чтобы якорные переходы не уезжали под липкую шапку */
+  scroll-padding-top: 5rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background-color: var(--color-graphite-950);
+  color: var(--color-graphite-100);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  /* Место под фиксированную мобильную панель CTA */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Ничто не должно вызывать горизонтальный скролл на мобильном */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Видимый фокус — обязателен для доступности и удобен на клавиатуре */
+:focus-visible {
+  outline: 3px solid var(--color-spark-400);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Убираем «прыжок» шрифта в числах прайса */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- текстуры */
+
+/**
+ * Фактура шлифованного металла. Чистый CSS вместо картинки:
+ * ноль запросов, ноль килобайт, идеально на любом экране.
+ */
+.texture-brushed {
+  background-image:
+    repeating-linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.022) 0px,
+      rgba(255, 255, 255, 0.022) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    repeating-linear-gradient(
+      82deg,
+      rgba(0, 0, 0, 0.05) 0px,
+      rgba(0, 0, 0, 0.05) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+}
+
+/* Сетка как на чертеже — используется в тёмных секциях */
+.texture-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Мягкое свечение «раскалённого металла» за первым экраном */
+.glow-spark {
+  background:
+    radial-gradient(60% 55% at 78% 18%, rgba(240, 90, 15, 0.22) 0%, transparent 70%),
+    radial-gradient(45% 45% at 12% 82%, rgba(240, 90, 15, 0.09) 0%, transparent 70%);
+}
+
+/* ------------------------------------------------------------- утилиты UI */
+
+.card {
+  background-color: var(--color-graphite-850);
+  border: 1px solid var(--color-graphite-700);
+  border-radius: var(--radius-card);
+}
+
+.card-hover {
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.card-hover:hover {
+  border-color: var(--color-graphite-500);
+  background-color: var(--color-graphite-800);
+}
+
+/* Скрыть визуально, оставить для скринридеров */
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Плавное раскрытие FAQ через нативный details */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Убираем спиннеры у числовых полей — в калькуляторе они мешают на мобильном */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
