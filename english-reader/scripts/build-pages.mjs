@@ -39,6 +39,20 @@ if (fs.existsSync(trainerBuild)) {
   console.warn('⚠ сборка тренажёра не найдена:', trainerBuild);
 }
 
+// 2а. В тренажёр добавляем ссылку на читалку: иначе о ней просто не узнать,
+// открыв корневой адрес. Правим только копию в docs/, исходники не трогаем.
+const trainerIndex = path.join(docsDir, 'index.html');
+if (fs.existsSync(trainerIndex)) {
+  const link = `
+    <a href="./reader/" style="position:fixed;right:12px;bottom:12px;z-index:999;display:flex;
+       align-items:center;gap:6px;padding:8px 14px;border-radius:20px;text-decoration:none;
+       background:#b4551f;color:#fff;font:500 14px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+       box-shadow:0 4px 14px rgba(0,0,0,.25)">📖 Читалка</a>
+  </body>`;
+  fs.writeFileSync(trainerIndex, fs.readFileSync(trainerIndex, 'utf8').replace('</body>', link));
+  console.log('в тренажёр добавлена ссылка на читалку');
+}
+
 // 3. Читалка — в подпапку reader/.
 run('npx', ['vite', 'build', '--outDir', readerDir, '--emptyOutDir'], appDir);
 

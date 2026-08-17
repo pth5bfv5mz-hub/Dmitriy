@@ -74,7 +74,10 @@ export default function App() {
             </button>
           ) : (
             <>
-              <span className="muted small">{texts.length} текстов · B1</span>
+              <a className="btn ghost small-btn" href="../" title="Тренажёр слов">
+                Слова
+              </a>
+              <span className="muted small">{texts.length} текстов</span>
               {mode === 'direct' && (
                 <button className="btn ghost small-btn" onClick={() => setShowKeyGate(true)}>
                   {hasKey ? 'Ключ' : 'ИИ'}

@@ -4,6 +4,11 @@
  * конкретного текста, перевод берётся отсюда. Всё работает без интернета.
  */
 export default {
+  damage: 'повреждение; повреждать', nineteen: 'девятнадцать', sixteen: 'шестнадцать',
+  seventeen: 'семнадцать', eighteen: 'восемнадцать', eighth: 'восьмой', sixth: 'шестой',
+  seventh: 'седьмой', tenth: 'десятый', simple: 'простой', gentle: 'мягкий, нежный',
+  terrible: 'ужасный', probable: 'вероятный', possible: 'возможный', comfortable: 'удобный',
+  reasonable: 'разумный', valuable: 'ценный', suitable: 'подходящий', responsible: 'ответственный',
   // числа
   one: 'один', two: 'два', three: 'три', four: 'четыре', five: 'пять', six: 'шесть',
   seven: 'семь', eight: 'восемь', nine: 'девять', ten: 'десять', eleven: 'одиннадцать',

@@ -64,6 +64,9 @@ function candidates(word) {
 
   if (word.endsWith('ly')) {
     add(word.slice(0, -2));
+    // simply -> simple, terribly -> terrible, gently -> gentle
+    add(`${word.slice(0, -2)}le`);
+    if (word.endsWith('bly')) add(`${word.slice(0, -3)}ble`);
     if (word.endsWith('ily')) add(`${word.slice(0, -3)}y`);
   }
 
