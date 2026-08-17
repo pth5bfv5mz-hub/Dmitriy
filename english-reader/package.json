@@ -11,6 +11,7 @@
     "dev:server": "node --watch server/index.js",
     "dev:client": "vite",
     "start": "node server/index.js",
+    "test": "node scripts/check-content.mjs",
     "build": "vite build",
     "build:pages": "vite build --outDir ../docs --emptyOutDir",
     "preview": "vite preview"
