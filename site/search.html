@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Поиск по материалам</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html">Поурочные материалы</a>
+    <nav><a href="index.html">Дисциплины</a><a href="search.html" class="on">Поиск</a></nav>
+  </div>
+</header>
+<main class="wrap">
+
+  <h1>Поиск по материалам</h1>
+  <p class="lead">Ищет по темам занятий, разделам, ключевым понятиям
+    и текстам теоретических блоков всех дисциплин.</p>
+  <form id="search-form" class="tools" autocomplete="off">
+    <label for="s-q">Запрос</label>
+    <input type="search" id="s-q"
+      placeholder="оборачиваемость, ABC, OTIF, грузооборот, издержки">
+  </form>
+  <p class="count" id="s-info"></p>
+  <div id="s-out"></div>
+</main>
+<footer class="bottom"><div class="wrap">
+  Локальный сайт материалов. Пересобирается командой
+  <code>python scripts/build_site.py</code> — правки в HTML будут потеряны.
+</div></footer>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

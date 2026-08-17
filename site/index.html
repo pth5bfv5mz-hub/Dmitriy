@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Поурочные материалы</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html">Поурочные материалы</a>
+    <nav><a href="index.html" class="on">Дисциплины</a><a href="search.html">Поиск</a></nav>
+  </div>
+</header>
+<main class="wrap">
+
+  <h1>Поурочные материалы</h1>
+  <p class="lead">Локальная база техкарт, презентаций и практических заданий.
+    Дисциплин: 1, занятий: 43,
+    готовых комплектов: 3.</p>
+  <div class="cards">
+    <div class="card">
+      <h3><a href="mdk-04-02/index.html">МДК.04.02 «Оценка эффективности и контроль логистических систем»</a></h3>
+      <p class="meta">38.02.03 Операционная деятельность в логистике · группа
+        ДЛ 301-2024 · 3 курс</p>
+      <div class="bar"><span style="width:7%"></span></div>
+      <p class="bar-label">Готово комплектов: 3 из 43 (7 %)</p>
+      <p class="stats">
+        <span>Занятий: <b>43</b></span>
+        <span>Часов: <b>84</b></span>
+        <span>1 сем.: <b>39 ч</b></span>
+        <span>2 сем.: <b>45 ч</b></span>
+        <span>Аттестация: <b>экзамен (2 семестр)</b></span>
+      </p>
+    </div></div>
+  <div class="box note">
+    <p><b>Как обновить.</b> Материалы занятия собираются командой
+    <code>python scripts/build.py --lesson N</code>, сайт —
+    <code>python scripts/build_site.py</code>. Все тексты берутся из
+    <code>data/</code>, HTML-файлы не редактируются вручную.</p>
+  </div>
+</main>
+<footer class="bottom"><div class="wrap">
+  Локальный сайт материалов. Пересобирается командой
+  <code>python scripts/build_site.py</code> — правки в HTML будут потеряны.
+</div></footer>
+<script src="assets/app.js"></script>
+</body>
+</html>

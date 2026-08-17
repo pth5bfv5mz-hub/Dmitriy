@@ -1,0 +1,56 @@
+# Единый шаблон оформления на весь курс (и на будущие дисциплины проекта).
+# Меняется здесь — применяется ко всем презентациям и документам при пересборке.
+
+palette:
+  primary: "1F3864"        # тёмно-синий: заголовки, шапки таблиц, колонтитул
+  accent: "2E75B6"         # синий: акценты, полосы, номера
+  accent_soft: "D6E2F2"    # светло-синий: фон блока определения
+  surface: "F2F5FA"        # очень светлый фон: чередование строк таблиц
+  formula_bg: "EDF1F7"     # фон блока с формулой
+  formula_bar: "1F3864"    # левая полоса блока с формулой
+  text: "1A1A1A"           # основной текст
+  muted: "5A6472"          # подписи, расшифровки, колонтитул
+  white: "FFFFFF"
+  ok_green: "2E7D32"       # «верно» в эталонах решения
+  warn: "B24A00"           # «внимание», типичная ошибка
+
+pptx:
+  slide_width_in: 13.333   # 16:9
+  slide_height_in: 7.5
+  font: "Calibri"
+  font_mono: "Consolas"
+  sizes:
+    title_slide: 40        # заголовок титульного слайда
+    heading: 34            # заголовок обычного слайда
+    heading_long: 30       # заголовок, если длинный
+    subtitle: 22
+    body: 22               # основной текст и буллеты
+    body_small: 20         # минимум по требованию — мельче не опускаемся
+    formula: 32            # сама формула
+    formula_legend: 20     # расшифровка обозначений
+    table: 20
+    footer: 11
+  limits:
+    max_bullets: 5
+    max_words_per_bullet: 10
+    min_slides: 12
+    max_slides: 16
+  margins_in:
+    left: 0.7
+    right: 0.7
+    top: 0.55
+    bottom: 0.75
+
+docx:
+  font: "Times New Roman"
+  font_size: 12
+  font_size_small: 10
+  heading_size: 14
+  line_spacing: 1.15
+  page:
+    size: A4
+    margins_cm:
+      top: 2.0
+      bottom: 2.0
+      left: 3.0
+      right: 1.5
