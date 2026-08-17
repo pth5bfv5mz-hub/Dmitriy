@@ -13,7 +13,8 @@
     "start": "node server/index.js",
     "test": "node scripts/check-content.mjs",
     "build": "vite build",
-    "build:pages": "vite build --outDir ../docs --emptyOutDir",
+    "build:pages": "node scripts/build-pages.mjs",
+    "icons": "node scripts/make-icons.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -8,25 +8,36 @@
 
 ## Как открыть на телефоне (GitHub Pages, бесплатно)
 
-Готовая сборка лежит в папке `docs` в корне репозитория — это самодостаточный сайт,
-которому не нужен сервер: браузер сам обращается к Anthropic API, а ключ хранится
-в этом же браузере (`localStorage`) и никуда больше не уходит.
+У репозитория может быть только один сайт на GitHub Pages, а приложений в нём два.
+Поэтому `npm run build:pages` собирает оба в одну папку `docs/`:
+
+```
+docs/          тренажёр слов (vocab-trainer) — адрес не меняется
+docs/reader/   читалка English Reader
+```
+
+Тренажёр копируется готовой сборкой из `vocab-trainer/docs`, его исходники не трогаются:
+он собран с относительными путями и одинаково работает и в корне, и из подпапки.
 
 Включается один раз в настройках репозитория:
 
 **Settings → Pages → Source: «Deploy from a branch» → Branch:
 `claude/english-learning-app-b1-ek7itf`, папка `/docs` → Save.**
 
-Через 1–2 минуты приложение открывается по адресу
-<https://pth5bfv5mz-hub.github.io/Dmitriy/>. При первом входе оно попросит ключ
-Anthropic — его дают на [console.anthropic.com](https://console.anthropic.com/settings/keys),
-раздел API Keys → Create Key. Там же в разделе Billing нужен положительный баланс.
+После этого:
 
-После изменений в коде сборку надо обновить:
+- <https://pth5bfv5mz-hub.github.io/Dmitriy/> — тренажёр слов, как и раньше;
+- <https://pth5bfv5mz-hub.github.io/Dmitriy/reader/> — читалка.
+
+Читалка работает офлайн: тексты и словарь встроены, service worker сохраняет саму
+страницу. Ставится на домашний экран («Поделиться» → «На экран Домой»), иконка
+генерируется скриптом `npm run icons`.
+
+Обновление сборки после изменений в коде:
 
 ```bash
 cd english-reader
-npm run build:pages     # пересобирает ../docs
+npm run build:pages
 cd .. && git add docs && git commit -m "Обновить сборку" && git push
 ```
 
