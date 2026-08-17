@@ -14,6 +14,7 @@ import setB from './set-b.js';
 import setC from './set-c.js';
 import setD from './set-d.js';
 import setE from './set-e.js';
+import setF from './set-f.js';
 
 const GENRE_STYLES = {
   motivation: 'warm editorial photography, soft daylight, quiet everyday scene',
@@ -41,7 +42,7 @@ function buildDictionary(glossary = {}) {
   return dictionary;
 }
 
-export const BUILTIN_TEXTS = [lift, ...setA, ...setB, ...setC, ...setD, ...setE].map((text, index) => ({
+export const BUILTIN_TEXTS = [lift, ...setA, ...setB, ...setC, ...setD, ...setE, ...setF].map((text, index) => ({
   ...text,
   id: `b:${text.id}`,
   builtIn: true,
