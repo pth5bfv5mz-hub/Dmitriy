@@ -2,6 +2,8 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'r
 import { api } from '../api.js';
 import { advanceStatus, glossaryKey, updateText } from '../lib/library.js';
 import { imageUrl, imagesEnabled } from '../lib/image.js';
+import { lookupWord } from '../lib/dictionary.js';
+import { getKey } from '../lib/anthropic.js';
 import { splitSentences, stripEmphasis, tokenize, words } from '../lib/text.js';
 
 export default function Reader({ text, onNotify, onReloaded, onNext }) {
@@ -32,6 +34,8 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
   // Иллюстрация рисуется внешним сервисом: пока грузится — заглушка,
   // если не ответил — блок просто исчезает, чтение это не задевает.
   const illustration = imagesEnabled() ? imageUrl(text) : null;
+  // ИИ подключается только если пользователь ввёл ключ или рядом есть сервер.
+  const aiAvailable = Boolean(getKey()) || !text.builtIn;
   const [imageState, setImageState] = useState('loading');
 
   const close = useCallback(() => setPopup(null), []);
@@ -74,6 +78,37 @@ export default function Reader({ text, onNotify, onReloaded, onNext }) {
     setPopup({ key, word, el: event.currentTarget });
 
     if (cache[key]) return;
+
+    // Сначала встроенный словарь: мгновенно, бесплатно и без интернета.
+    const offline = lookupWord(text.dictionary, word);
+    if (offline) {
+      const entry = { word, ...offline, offline: true };
+      setCache((prev) => ({ ...prev, [key]: entry }));
+      updateText(text.id, (item) => {
+        item.glossary ??= {};
+        item.glossary[key] = entry;
+        advanceStatus(item, 'reading');
+      });
+      onReloaded?.();
+      return;
+    }
+
+    // Слова нет в словаре. Если ИИ недоступен — честно об этом говорим.
+    if (!aiAvailable) {
+      setCache((prev) => ({
+        ...prev,
+        [key]: {
+          word,
+          translation: '—',
+          lemma: '',
+          pos: '',
+          note: /^[A-Z]/.test(word)
+            ? 'Похоже на имя собственное — переводить не нужно.'
+            : 'Этого слова нет во встроенном словаре текста.',
+        },
+      }));
+      return;
+    }
 
     setLoadingKey(key);
     try {

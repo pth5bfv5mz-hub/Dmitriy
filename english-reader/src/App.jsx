@@ -51,8 +51,9 @@ export default function App() {
     refreshLibrary();
   }, [refreshLibrary]);
 
-  // В режиме без сервера без ключа делать нечего — сразу показываем его ввод.
-  const needsKey = mode === 'direct' && !hasKey;
+  // Ключ нужен только для генерации новых текстов и живого диалога.
+  // Встроенные тексты работают без него, поэтому ничего не блокируем.
+  const aiAvailable = mode === 'server' ? hasKey : hasKey;
 
   function keySaved() {
     setHasKey(Boolean(getKey()));
@@ -76,7 +77,7 @@ export default function App() {
               <span className="muted small">{texts.length} текстов · B1</span>
               {mode === 'direct' && (
                 <button className="btn ghost small-btn" onClick={() => setShowKeyGate(true)}>
-                  Ключ
+                  {hasKey ? 'Ключ' : 'ИИ'}
                 </button>
               )}
             </>
@@ -92,8 +93,8 @@ export default function App() {
       )}
 
       <main>
-        {needsKey || showKeyGate ? (
-          <KeyGate onSaved={keySaved} onCancel={showKeyGate && hasKey ? () => setShowKeyGate(false) : null} />
+        {showKeyGate ? (
+          <KeyGate onSaved={keySaved} onCancel={() => setShowKeyGate(false)} />
         ) : current ? (
           <TextWorkspace
             key={current.id}
@@ -109,6 +110,8 @@ export default function App() {
             onOpen={openText}
             onRefresh={refreshLibrary}
             onNotify={notify}
+            aiAvailable={aiAvailable}
+            onOpenKey={() => setShowKeyGate(true)}
           />
         )}
       </main>

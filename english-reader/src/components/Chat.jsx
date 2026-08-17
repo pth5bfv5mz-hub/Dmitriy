@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
 import { advanceStatus, updateText } from '../lib/library.js';
 import { stripEmphasis } from '../lib/text.js';
+import { getKey } from '../lib/anthropic.js';
 
 export default function Chat({ text, onNotify, onReloaded }) {
   const [turns, setTurns] = useState(() => (text.chat ?? []).filter((turn) => !turn.hidden));
@@ -13,13 +14,31 @@ export default function Chat({ text, onNotify, onReloaded }) {
 
   const userTurns = turns.filter((turn) => turn.role === 'user').length;
 
+  // Живой собеседник — это ИИ, он платный. Без ключа даём вопросы для
+  // самостоятельного ответа и подборку фраз: писать ответы можно и так.
+  const aiAvailable = Boolean(getKey()) || !text.builtIn;
+  const [answers, setAnswers] = useState(() => text.chatSummary?.answers ?? {});
+
+  function saveAnswer(index, value) {
+    const next = { ...answers, [index]: value };
+    setAnswers(next);
+    updateText(text.id, (item) => {
+      item.chatSummary = { ...(item.chatSummary ?? {}), answers: next, at: new Date().toISOString() };
+      item.lastStep = 'chat';
+      // «Диалог завершён» — только когда отвечено на все вопросы.
+      const questions = text.discussion?.length ?? 0;
+      const answered = Object.values(next).filter((answer) => answer.trim()).length;
+      advanceStatus(item, questions > 0 && answered >= questions ? 'chat_done' : 'quiz_done');
+    });
+  }
+
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [turns, busy]);
 
   // Первый ход делает ИИ — чтобы пользователю было с чего начать.
   useEffect(() => {
-    if (started.current || turns.length > 0) return;
+    if (!aiAvailable || started.current || turns.length > 0) return;
     started.current = true;
     send('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,6 +114,51 @@ export default function Chat({ text, onNotify, onReloaded }) {
       event.preventDefault();
       if (draft.trim()) send(draft.trim());
     }
+  }
+
+  if (!aiAvailable) {
+    return (
+      <section className="chat">
+        <h1 className="section-title big">Разговор о тексте</h1>
+        <p className="muted">
+          Отвечайте на вопросы письменно или вслух — это и есть разговорная практика. Ответы
+          сохраняются, к ним можно вернуться.
+        </p>
+
+        <ol className="discussion">
+          {(text.discussion ?? []).map((question, index) => (
+            <li key={index}>
+              <p className="discussion-question">{question}</p>
+              <textarea
+                rows={3}
+                value={answers[index] ?? ''}
+                onChange={(event) => saveAnswer(index, event.target.value)}
+                placeholder="Your answer in English…"
+                spellCheck="false"
+              />
+            </li>
+          ))}
+        </ol>
+
+        {text.phrases?.length > 0 && (
+          <div className="feedback card">
+            <h3 className="section-title">Фразы, которые пригодятся</h3>
+            <ul className="wordchips">
+              {text.phrases.map((phrase, index) => (
+                <li key={index}>
+                  <b>{phrase.en}</b> — <span className="muted">{phrase.ru}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <p className="muted small">
+          Живой собеседник, который отвечает и мягко правит ошибки, — это ИИ, и он платный.
+          Кнопка «Ключ» вверху страницы включает его, если захотите.
+        </p>
+      </section>
+    );
   }
 
   return (

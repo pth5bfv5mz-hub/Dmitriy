@@ -6,7 +6,7 @@ import { STATUS_LABELS, formatDate, words } from '../lib/text.js';
 
 const SURPRISE = { id: 'surprise', label: 'Удиви меня', emoji: '🎲', description: 'Жанр и тему выберет ИИ' };
 
-export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) {
+export default function Library({ genres, texts, onOpen, onRefresh, onNotify, aiAvailable, onOpenKey }) {
   const [genreId, setGenreId] = useState('surprise');
   const [topic, setTopic] = useState('');
   const [creating, setCreating] = useState(false);
@@ -54,6 +54,127 @@ export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) 
     } catch (error) {
       onNotify(error.message);
     }
+  }
+
+  const builtInCount = texts.filter((text) => text.builtIn).length;
+
+  const libraryBlocks = (
+    <>
+    {inProgress.length > 0 && (
+      <section className="continue">
+        <h2 className="section-title">Продолжить</h2>
+        <div className="continue-row">
+          {inProgress.slice(0, 3).map((text) => (
+            <button key={text.id} className="continue-card" onClick={() => onOpen(text.id)}>
+              <span className="genre-emoji">{text.genre?.emoji ?? '📖'}</span>
+              <span>
+                <strong>{text.title}</strong>
+                <span className="muted small block">{STATUS_LABELS[text.status]?.label}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section>
+      <div className="library-head">
+        <h2 className="section-title">Библиотека</h2>
+        <div className="library-tools">
+          <input
+            className="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Поиск по названию"
+            aria-label="Поиск"
+          />
+          <select value={filter} onChange={(event) => setFilter(event.target.value)} aria-label="Фильтр по жанру">
+            <option value="all">Все жанры</option>
+            {genres.map((genre) => (
+              <option key={genre.id} value={genre.id}>
+                {genre.emoji} {genre.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {visible.length === 0 ? (
+        <p className="muted empty">
+          {texts.length === 0
+            ? 'Пока пусто. Выберите жанр выше и создайте первый текст.'
+            : 'Ничего не найдено по этому фильтру.'}
+        </p>
+      ) : (
+        <ul className="text-list">
+          {visible.map((text) => {
+            const status = STATUS_LABELS[text.status] ?? STATUS_LABELS.new;
+            return (
+              <li key={text.id}>
+                <button className="text-card" onClick={() => onOpen(text.id)}>
+                  <span className="genre-emoji big">{text.genre?.emoji ?? '📖'}</span>
+                  <span className="text-card-body">
+                    <span className="text-card-title">{text.title}</span>
+                    <span className="muted small">
+                      {text.genre?.label ?? '—'} · {words(text.wordCount)} · {formatDate(text.createdAt)}
+                    </span>
+                    <span className="text-card-meta">
+                      <span className={`badge ${status.tone}`}>{status.label}</span>
+                      {text.quiz && (
+                        <span className="badge quiet">
+                          тест {text.quiz.correct}/{text.quiz.total}
+                        </span>
+                      )}
+                      {text.lookedUpWords > 0 && (
+                        <span className="badge quiet">в словаре: {text.lookedUpWords}</span>
+                      )}
+                    </span>
+                  </span>
+                  <span
+                    className="delete"
+                    role="button"
+                    tabIndex={0}
+                    title="Удалить"
+                    onClick={(event) => remove(event, text.id)}
+                    onKeyDown={(event) => event.key === 'Enter' && remove(event, text.id)}
+                  >
+                    ×
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+    </>
+  );
+
+
+  if (!aiAvailable) {
+    return (
+      <div className="library">
+        <section className="generator card">
+          <h1>Читайте и учитесь — бесплатно</h1>
+          <p className="muted">
+            В приложении {builtInCount} готовых текстов уровня B1 со словарём по клику, тестом,
+            пересказом и вопросами для разговора. Интернет нужен только чтобы открыть страницу,
+            платить не нужно ничего.
+          </p>
+          <p className="free-note">
+            Хотите бесконечные новые тексты и живого собеседника? Это работает через платный ИИ —
+            подключается кнопкой ниже, но без него всё остальное тоже работает.
+          </p>
+          <div className="actions">
+            <button className="btn ghost" onClick={onOpenKey}>
+              Подключить ИИ (по желанию)
+            </button>
+          </div>
+        </section>
+
+        {libraryBlocks}
+      </div>
+    );
   }
 
   return (
@@ -129,93 +250,7 @@ export default function Library({ genres, texts, onOpen, onRefresh, onNotify }) 
         )}
       </section>
 
-      {inProgress.length > 0 && (
-        <section className="continue">
-          <h2 className="section-title">Продолжить</h2>
-          <div className="continue-row">
-            {inProgress.slice(0, 3).map((text) => (
-              <button key={text.id} className="continue-card" onClick={() => onOpen(text.id)}>
-                <span className="genre-emoji">{text.genre?.emoji ?? '📖'}</span>
-                <span>
-                  <strong>{text.title}</strong>
-                  <span className="muted small block">{STATUS_LABELS[text.status]?.label}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section>
-        <div className="library-head">
-          <h2 className="section-title">Библиотека</h2>
-          <div className="library-tools">
-            <input
-              className="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Поиск по названию"
-              aria-label="Поиск"
-            />
-            <select value={filter} onChange={(event) => setFilter(event.target.value)} aria-label="Фильтр по жанру">
-              <option value="all">Все жанры</option>
-              {genres.map((genre) => (
-                <option key={genre.id} value={genre.id}>
-                  {genre.emoji} {genre.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {visible.length === 0 ? (
-          <p className="muted empty">
-            {texts.length === 0
-              ? 'Пока пусто. Выберите жанр выше и создайте первый текст.'
-              : 'Ничего не найдено по этому фильтру.'}
-          </p>
-        ) : (
-          <ul className="text-list">
-            {visible.map((text) => {
-              const status = STATUS_LABELS[text.status] ?? STATUS_LABELS.new;
-              return (
-                <li key={text.id}>
-                  <button className="text-card" onClick={() => onOpen(text.id)}>
-                    <span className="genre-emoji big">{text.genre?.emoji ?? '📖'}</span>
-                    <span className="text-card-body">
-                      <span className="text-card-title">{text.title}</span>
-                      <span className="muted small">
-                        {text.genre?.label ?? '—'} · {words(text.wordCount)} · {formatDate(text.createdAt)}
-                      </span>
-                      <span className="text-card-meta">
-                        <span className={`badge ${status.tone}`}>{status.label}</span>
-                        {text.quiz && (
-                          <span className="badge quiet">
-                            тест {text.quiz.correct}/{text.quiz.total}
-                          </span>
-                        )}
-                        {text.lookedUpWords > 0 && (
-                          <span className="badge quiet">в словаре: {text.lookedUpWords}</span>
-                        )}
-                      </span>
-                    </span>
-                    <span
-                      className="delete"
-                      role="button"
-                      tabIndex={0}
-                      title="Удалить"
-                      onClick={(event) => remove(event, text.id)}
-                      onKeyDown={(event) => event.key === 'Enter' && remove(event, text.id)}
-                    >
-                      ×
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+      {libraryBlocks}
     </div>
   );
 }
